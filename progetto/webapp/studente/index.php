@@ -1,5 +1,5 @@
 <?php
 
-print('ok')
+print('studente')
 
 ?>

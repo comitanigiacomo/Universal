@@ -34,10 +34,10 @@
       $domain_parts = explode('.', $domain_part);
       $type = $domain_parts[0];
   
-      if ($type == 'studenti' || $type == 'docenti' || $type == 'segreteria') {
+      if ($type == 'studenti' || $type == 'docenti' || $type == 'segreteria' || $type == 'exstudenti') {
           return $type;
       } else {
-          return "Tipo non riconosciuto";
+          print("Tipo non riconosciuto");
       }
     }
 
@@ -47,12 +47,12 @@
         switch ($type){
           case "studenti":
             Redirect("../studente/index.php");
-          case "ex_studenti":
+          case "exstudenti":
             Redirect("../ex_studente/index.php");
           case "docenti":
             Redirect("../docente/index.php");
           case "segreteria":
-            Redirect("../segretario/index.php");
+            Redirect("../segreteria/index.php");
           }
     }
 
