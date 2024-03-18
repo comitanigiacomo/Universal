@@ -34,7 +34,7 @@
       $domain_parts = explode('.', $domain_part);
       $type = $domain_parts[0];
   
-      if ($type == 'studenti' || $type == 'docenti' || $type == 'segreteria' || $type == 'exstudenti') {
+      if ($type == 'studente' || $type == 'docente' || $type == 'segreterio' || $type == 'exstudenti') {
           return $type;
       } else {
           print("Tipo non riconosciuto");

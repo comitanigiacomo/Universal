@@ -3,7 +3,7 @@
 
 <head>
     <title>Autenticazione</title>
-    <link href="" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="login.css">
     <meta charset="utf-8">
 </head>
 
@@ -12,7 +12,7 @@
     <header class="header" role="banner">
         <div class="logo-container container-fluid">
             <div>
-                <a class="nav-link active" id="uni" aria-current="page" href="/">Uni<span id="euro">versal</span></a>
+                <a class="nav-link active" id="uni" aria-current="page" href="/">Uni<span id="versal">versal</span></a>
             </div>
         </div>
     </header>
