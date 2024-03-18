@@ -1,13 +1,16 @@
+-- TABELLE
+
 CREATE TYPE TipoMotivo AS ENUM ('laureato', 'rinuncia');
 CREATE TYPE TipoUtente AS ENUM ('studente','docente','segretario','ex_studente');
 
-DROP TABLE universal.utenti CASCADE;
+CREATE SEQUENCE matricola_sequence START 100000;
+CREATE SEQUENCE codice_corso_laurea START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE universal.utenti(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
     cognome VARCHAR(40) NOT NULL CHECK(cognome !~ '[0-9]'),
-    tipo VARCHAR(20) NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario', 'ex_studente')),
+    tipo TipoUtente NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario', 'ex_studente')),
     email VARCHAR(255) NOT NULL CHECK(email != ''),
     password VARCHAR(255) NOT NULL CHECK (LENGTH(password) = 8 AND password ~ '[!@#$%^&*()-_+=]')
 );
@@ -35,9 +38,9 @@ CREATE TABLE universal.ex_studenti (
 );
 
 CREATE TABLE universal.corsi_di_laurea (
-    codice integer PRIMARY KEY,
-    nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
-    tipo integer CHECK(tipo in (3,5)),
+    codice VARCHAR(6) PRIMARY KEY,
+    nome TEXT NOT NULL CHECK(nome !~ '[0-9]'),
+    tipo integer CHECK(tipo in (3,5,2)),
     descrizione TEXT NOT NULL
 );
 
