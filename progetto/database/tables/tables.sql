@@ -1,11 +1,13 @@
 CREATE TYPE TipoMotivo AS ENUM ('laureato', 'rinuncia');
 CREATE TYPE TipoUtente AS ENUM ('studente','docente','segretario','ex_studente');
 
+DROP TABLE universal.utenti CASCADE;
+
 CREATE TABLE universal.utenti(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
     cognome VARCHAR(40) NOT NULL CHECK(cognome !~ '[0-9]'),
-    tipo VARCHAR(20) NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario')),
+    tipo VARCHAR(20) NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario', 'ex_studente')),
     email VARCHAR(255) NOT NULL CHECK(email != ''),
     password VARCHAR(255) NOT NULL CHECK (LENGTH(password) = 8 AND password ~ '[!@#$%^&*()-_+=]')
 );
