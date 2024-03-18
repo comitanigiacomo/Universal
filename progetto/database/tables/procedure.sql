@@ -1,87 +1,293 @@
--- PROCEDURE
+-- FUNZIONI
 
--- TRASFORMA UNO STUDENTE IN UN EX_STUDENTE
-CREATE OR REPLACE PROCEDURE studentToExStudent (
-    _id uuid,
-    _motivo TipoMotivo
+-- VERIFICA LOGIN UTENTE E RESTITUISCE ID E TIPO
+
+CREATE OR REPLACE FUNCTION universal.login (
+  email VARCHAR(255),
+  password VARCHAR(255)
 )
+  RETURNS TABLE (
+    id uuid,
+    tipo TipoUtente
+  )
   LANGUAGE plpgsql
   AS $$
     BEGIN
 
-        UPDATE universal.utenti
-        SET tipo = 'ex_studente'
-        WHERE universal.utenti.id = _id;
-
-        INSERT INTO universal.ex_studenti (id, motivo)
-        VALUES (_id, _motivo);
-
-        DELETE FROM universal.studenti
-        WHERE universal.studenti.id = _id;
-
+      RETURN QUERY
+        SELECT
+            utenti.id,
+            utenti.tipo::TipoUtente
+        FROM universal.utenti
+        WHERE
+            login.password = universal.utenti.password
+            AND login.email = utenti.email
+            AND utenti.password = login.password;
     END;
   $$;
 
--- GENERA MAIL UTENTE DATO NOME COGNOME E TIPO
+-- RESTITUISCE TUTTI GLI STUDENTI
 
--- MODIFICA PASSWORD STUDENTE
+    CREATE OR REPLACE FUNCTION universal.get_all_students()
+        RETURNS TABLE (
+            id uuid,
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.id,
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.studenti ON studenti.id = utenti.id
+                WHERE utenti.tipo = 'studente';
+            END ;
+        $$;
 
--- ISCRIZIONE APPELLO STUDENTE
+    CREATE OR REPLACE FUNCTION genera_matricola()
+    RETURNS INTEGER AS $$
+    DECLARE
+        nuova_matricola INTEGER;
+    BEGIN
+        SELECT nextval('matricola_sequence') INTO nuova_matricola;
+        RETURN nuova_matricola;
+    END;
+$$ LANGUAGE plpgsql;
 
--- DISISCRIZIONE APPELLO STUDENTE
+-- RESTITUISCE TUTTI GLI EX STUDENTI
 
--- ISCRIZIONE CORSO DI LAURERA STUDENTE
+    CREATE OR REPLACE FUNCTION universal.get_all_exstudents()
+        RETURNS TABLE (
+            id uuid,
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.id,
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    ex_studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.ex_studenti ON utenti.id = ex_studenti.id
+                WHERE utenti.tipo = 'ex_studente';
+            END ;
+        $$;
 
--- DISISCRIZIONE CORSO DI LAUREA STUDENTE
+--RESTITUISCE TUTTI I DOCENTI
 
--- CREAZIONE APPELLO DOCENTE
+    CREATE OR REPLACE FUNCTION universal.get_all_teachers()
+        RETURNS TABLE (
+            id uuid,
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255)
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.id,
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email
+                FROM universal.utenti
+                WHERE utenti.tipo = 'docente';
+            END ;
+        $$;
 
- -- CANCELLAZIONE APPELLO DOCENTE
+-- RESTITUISCE UNO STUDENTE DATO IL SUO ID
 
--- CREAZIONE UTENTE SEGRETARIO
+     CREATE OR REPLACE FUNCTION universal.get_student(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.studenti ON _id = studenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
 
--- CANCELLAZIONE STUDENTE SEGRETARIO
 
--- ASSEGNAZIONE DOCENTE INSEGNAMENTO SEGRETARIO
 
--- DISASSEGNAMENTO DOCENTE INSEGNAMENTO SEGRETARIO
+-- RESTITUISCE UN DOCENTE DATO IL SUO ID
 
--- SEGRETARIO CREA NUOVO STUDENTE
+     CREATE OR REPLACE FUNCTION universal.get_teacher(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255)
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email
+                FROM universal.utenti
+                    INNER JOIN universal.docenti ON _id = docenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
 
--- SEGRETARIO CREA NUOVO DOCENTE
+-- RESTITUISCE UN EX STUDENTE DATO IL SUO ID
 
--- SEGRETARIO MODIFICA STUDENTE
+       CREATE OR REPLACE FUNCTION universal.get_ex_student(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    ex_studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.ex_studenti ON _id = ex_studenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
 
--- SEGRETARIO MODIFICA DOCENTE
 
--- SEGRETARIO MODIFICA CALENDARIO APPELLI
 
--- SEGRETARIO CREA NUOVO SEGRETARIO
+-- RESTITUISCE TUTTI I SEGRETARI DISPONIBILI
+    CREATE OR REPLACE FUNCTION universal.get_secretaries()
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                    INNER JOIN universal.segretari ON utenti.id = segretari.id
+                WHERE utenti.tipo= 'segretario';
+            END ;
+        $$;
 
--- SEGRETARIO MODIFICA SEGRETARIO
+-- RESTITUISCE UN SEGERETARIO DATO IL SUO ID
 
--- SEGRETARIO CANCELLA SEGRETARIO
+      CREATE OR REPLACE FUNCTION universal.get_secretary(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                WHERE utenti.tipo = 'segretario'AND _id = utenti.id;
+            END ;
+        $$;
 
--- SEGRETARIO CREA PASSWORD UTENTE
+-- RESTITUISCE TUTTI I CORSI DI LAUREA
 
--- SEGRETARIO CREA CORSO DI LAUREA
+    CREATE OR REPLACE FUNCTION universal.get_degree_course()
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                    INNER JOIN universal.segretari ON utenti.id = segretari.id
+                WHERE utenti.tipo= 'segretario';
+            END ;
+        $$;
 
--- SEGRETARIO MODIFICA CORSO DI LAUREA
+-- RESITUISCE UN CORSI DI LAUREA DATO IL SUO ID
 
--- SEGRETARIO ELIMINA CORSO DI LAUREA
+-- RESTITUISCE TUTTI GLI INSEGNAMENTI
 
--- SEGRETARIO CREA NUOVO INSEGNAMENTO
+-- RESTITUISCE TUTTI GLI INSEGNAMENTI PER CORSO DI LAUREA
 
--- SEGRETARIO MODIFICA NUOVO INSEGNAMENTO
+-- RESTITUISCE TUTTI GLI APPELLI
 
--- SEGRETARIO ELIMINA INSEGNAMENTO
+-- RESTITUISCE TUTTE LE ISCRIZIONI
 
--- SEGRETARIO CREA APPELLO
+-- RESTITUISCE TUTTE LE VALUTAZIONI
 
--- SEGRETARIO MODIFICA APPELLO
+-- RESTITUISCE TUTTE LE VALUTAZIONI DI EX STUDENTI
 
--- SEGRETARIO ELIMINA APPELLO
+-- RESTITUISCE ESAMI MANCANTI ALLA LAUREA
 
--- SEGRETARIO ISCRIVE UNO STUDENTE AD UN APPELLO
+-- RESTITUISCE INSEGNAMENTIDI CUI UN DOCENTE E' RESPONSABILE
 
--- SEGRETARIO ELIMINA STUDENTE DA UN APPELLO
+-- RESTITUISE TUTTI GLI ATUDENTI ASCRITTI AGLI APPELLI DI UN DOCENTE
+
+-- RESTITUISCE TUTTE LE VALUAZIONI CHE UN DOCENTE HA DATO
+
+-- RESTITUISCE TUTTI GLI APPELLI DEGLI INSEGNAMENTI DEL CORSO DI LAUREA DI UNO STUDENTE
+
+-- RESTITUISCE LA MEDIA DELLE VLUTAZIONI DI UNO STUDENTE
+
+-- RESTIUISCE TUTTE LE VALUTAZIONI DI UNO STUDENTE
+
+-- RESTITUISCE MEDIA VALUTAZIONI DI UNO STUDENTE
+
+-- RESTITUISCE VOTI DATI AD EX STUDENTE
+
+
+
+
+
