@@ -3,6 +3,8 @@
 CREATE TYPE TipoMotivo AS ENUM ('laureato', 'rinuncia');
 CREATE TYPE TipoUtente AS ENUM ('studente','docente','segretario','ex_studente');
 
+CREATE SEQUENCE matricola_sequence START 1000;
+
 CREATE TABLE universal.utenti(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
