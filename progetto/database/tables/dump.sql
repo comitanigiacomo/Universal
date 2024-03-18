@@ -168,32 +168,50 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-
-CREATE TRIGGER elimina_utente_dopo_cancellazione_docente_trigger
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
 AFTER DELETE ON universal.ex_studenti
-FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione_docente();
+FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
 
 
-CREATE TRIGGER elimina_utente_dopo_cancellazione_docente_trigger
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
 AFTER DELETE ON universal.segretari
-FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione_docente();
+FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
 
 
-CREATE TRIGGER elimina_utente_dopo_cancellazione_docente_trigger
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
 AFTER DELETE ON universal.docenti
-FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione_docente();
+FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
 
+-- ELIMINA IL DOCENTE, LO STUDENTE O IL  SEGRETARIO, E L'UTENTE CORRISPONDENTE
 
-CREATE TRIGGER elimina_utente_dopo_cancellazione_docente_trigger
-AFTER DELETE ON universal.studenti
-FOR EACH ROW EXECUTE FUNCTION elimina_utente_dopo_cancellazione_docente();
-
--- ELIMINA IL DOCENTE, E L'UTENTE CORRISPONDENTE
-
-CREATE OR REPLACE FUNCTION elimina_utente_dopo_cancellazione_docente()
+CREATE OR REPLACE FUNCTION elimina_utente_dopo_cancellazione()
 RETURNS TRIGGER AS $$
 BEGIN
     DELETE FROM universal.utenti WHERE id = OLD.id;
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
+
+-- PROCEDURE 
+
+CREATE OR REPLACE PROCEDURE studentToExStudent (
+    _id uuid,
+    _motivo TipoMotivo
+)
+  LANGUAGE plpgsql
+  AS $$
+    BEGIN
+
+        UPDATE universal.utenti
+        SET tipo = 'ex_studente'
+        WHERE universal.utenti.id = _id;
+
+        INSERT INTO universal.ex_studenti (id, motivo)
+        VALUES (_id, _motivo);
+
+        DELETE FROM universal.studenti
+        WHERE universal.studenti.id = _id;
+
+    END;
+  $$;
+
