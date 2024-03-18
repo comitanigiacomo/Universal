@@ -3,13 +3,14 @@
 CREATE TYPE TipoMotivo AS ENUM ('laureato', 'rinuncia');
 CREATE TYPE TipoUtente AS ENUM ('studente','docente','segretario','ex_studente');
 
-CREATE SEQUENCE matricola_sequence START 1000;
+CREATE SEQUENCE matricola_sequence START 100000;
+CREATE SEQUENCE codice_corso_laurea START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE universal.utenti(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
     cognome VARCHAR(40) NOT NULL CHECK(cognome !~ '[0-9]'),
-    tipo VARCHAR(20) NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario')),
+    tipo TipoUtente NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario', 'ex_studente')),
     email VARCHAR(255) NOT NULL CHECK(email != ''),
     password VARCHAR(255) NOT NULL CHECK (LENGTH(password) = 8 AND password ~ '[!@#$%^&*()-_+=]')
 );
@@ -37,9 +38,9 @@ CREATE TABLE universal.ex_studenti (
 );
 
 CREATE TABLE universal.corsi_di_laurea (
-    codice integer PRIMARY KEY,
-    nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
-    tipo integer CHECK(tipo in (3,5)),
+    codice VARCHAR(6) PRIMARY KEY,
+    nome TEXT NOT NULL CHECK(nome !~ '[0-9]'),
+    tipo integer CHECK(tipo in (3,5,2)),
     descrizione TEXT NOT NULL
 );
 
@@ -74,9 +75,7 @@ CREATE TABLE universal.propedeutico (
 
 -- FUNZIONI
 
-
 -- VERIFICA LOGIN UTENTE E RESTITUISCE ID E TIPO
-
 
 CREATE OR REPLACE FUNCTION universal.login (
   email VARCHAR(255),
@@ -103,7 +102,6 @@ CREATE OR REPLACE FUNCTION universal.login (
   $$;
 
 -- RESTITUISCE TUTTI GLI STUDENTI
-
 
     CREATE OR REPLACE FUNCTION universal.get_all_students()
         RETURNS TABLE (
@@ -139,6 +137,198 @@ CREATE OR REPLACE FUNCTION universal.login (
     END;
 $$ LANGUAGE plpgsql;
 
+-- RESTITUISCE TUTTI GLI EX STUDENTI
+
+    CREATE OR REPLACE FUNCTION universal.get_all_exstudents()
+        RETURNS TABLE (
+            id uuid,
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.id,
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    ex_studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.ex_studenti ON utenti.id = ex_studenti.id
+                WHERE utenti.tipo = 'ex_studente';
+            END ;
+        $$;
+
+--RESTITUISCE TUTTI I DOCENTI
+
+    CREATE OR REPLACE FUNCTION universal.get_all_teachers()
+        RETURNS TABLE (
+            id uuid,
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255)
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.id,
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email
+                FROM universal.utenti
+                WHERE utenti.tipo = 'docente';
+            END ;
+        $$;
+
+-- RESTITUISCE UNO STUDENTE DATO IL SUO ID
+
+     CREATE OR REPLACE FUNCTION universal.get_student(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.studenti ON _id = studenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
+
+
+
+-- RESTITUISCE UN DOCENTE DATO IL SUO ID
+
+     CREATE OR REPLACE FUNCTION universal.get_teacher(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255)
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email
+                FROM universal.utenti
+                    INNER JOIN universal.docenti ON _id = docenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
+
+-- RESTITUISCE UN EX STUDENTE DATO IL SUO ID
+
+       CREATE OR REPLACE FUNCTION universal.get_ex_student(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            matricola INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    ex_studenti.matricola
+                FROM universal.utenti
+                    INNER JOIN universal.ex_studenti ON _id = ex_studenti.id
+                WHERE utenti.id = _id;
+            END ;
+        $$;
+
+
+
+-- RESTITUISCE TUTTI I SEGRETARI DISPONIBILI
+    CREATE OR REPLACE FUNCTION universal.get_secretaries()
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                    INNER JOIN universal.segretari ON utenti.id = segretari.id
+                WHERE utenti.tipo= 'segretario';
+            END ;
+        $$;
+
+-- RESTITUISCE UN SEGERETARIO DATO IL SUO ID
+
+      CREATE OR REPLACE FUNCTION universal.get_secretary(_id uuid)
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                WHERE utenti.tipo = 'segretario'AND _id = utenti.id;
+            END ;
+        $$;
+
+-- RESTITUISCE TUTTI I CORSI DI LAUREA
+
+    CREATE OR REPLACE FUNCTION universal.get_degree_course()
+        RETURNS TABLE (
+            nome VARCHAR(255),
+            cognome VARCHAR(255),
+            email VARCHAR(255),
+            tipo TipoUtente
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                    utenti.nome,
+                    utenti.cognome,
+                    utenti.email,
+                    utenti.tipo
+                FROM universal.utenti
+                    INNER JOIN universal.segretari ON utenti.id = segretari.id
+                WHERE utenti.tipo= 'segretario';
+            END ;
+        $$;
 
 -- TRIGGER
 
@@ -194,7 +384,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- PROCEDURE 
+-- PROCEDURE
 
 CREATE OR REPLACE PROCEDURE studentToExStudent (
     _id uuid,
