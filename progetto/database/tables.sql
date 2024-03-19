@@ -15,8 +15,6 @@ CREATE TABLE universal.utenti(
     password VARCHAR(255) NOT NULL CHECK (LENGTH(password) = 8 AND password ~ '[!@#$%^&*()-_+=]')
 );
 
-
-
 CREATE TABLE universal.docenti (
     id uuid PRIMARY KEY REFERENCES universal.utenti(id),
     ufficio VARCHAR(100)
@@ -24,7 +22,8 @@ CREATE TABLE universal.docenti (
 
 CREATE TABLE universal.studenti (
     id uuid PRIMARY KEY REFERENCES universal.utenti(id),
-    matricola INTEGER UNIQUE NOT NULL
+    matricola INTEGER UNIQUE NOT NULL,
+    corso_di_laurea INTEGER REFERENCES universal.corsi_di_laurea(codice) ON UPDATE CASCADE
 );
 
 CREATE TABLE universal.segretari (
@@ -34,34 +33,39 @@ CREATE TABLE universal.segretari (
 
 CREATE TABLE universal.ex_studenti (
     id uuid PRIMARY KEY REFERENCES universal.utenti(id),
-    motivo TipoMotivo NOT NULL
+    matricola INTEGER NOT NULL REFERENCES universal.studenti(matricola),
+    motivo TipoMotivo NOT NULL,
+    corso_di_laurea INTEGER REFERENCES universal.corsi_di_laurea(codice) ON UPDATE CASCADE
 );
 
+
 CREATE TABLE universal.corsi_di_laurea (
-    codice VARCHAR(6) PRIMARY KEY,
+    codice SERIAL UNIQUE PRIMARY KEY,
     nome TEXT NOT NULL CHECK(nome !~ '[0-9]'),
     tipo integer CHECK(tipo in (3,5,2)),
     descrizione TEXT NOT NULL
 );
 
 CREATE TABLE universal.insegnamenti (
-    codice INTEGER PRIMARY KEY,
+    codice SERIAL UNIQUE PRIMARY KEY,
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
     descrizione TEXT,
-    anno INTEGER CHECK(anno BETWEEN 2000 AND 2100)
+    anno INTEGER CHECK(anno BETWEEN 2000 AND 2100),
+    docente_responsabile uuid NOT NULL REFERENCES universal.docenti(id),
+    corso_di_laurea INTEGER NOT NULL REFERENCES universal.corsi_di_laurea(codice) ON UPDATE CASCADE
 );
 
-
 CREATE TABLE universal.appelli (
-    codice uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    codice SERIAL UNIQUE PRIMARY KEY,
     data date NOT NULL,
-    luogo VARCHAR(40) NOT NULL
+    luogo VARCHAR(40) NOT NULL,
+    insegnamento INTEGER NOT NULL REFERENCES universal.insegnamenti(codice) ON UPDATE CASCADE
 );
 
 CREATE TABLE universal.iscritti (
-    appello uuid NOT NULL REFERENCES universal.appelli(codice),
-    studente uuid NOT NULL REFERENCES universal.studenti(id),
-    voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
+    appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
+    studente uuid NOT NULL REFERENCES universal.utenti(id),
+    voto INTEGER CHECK( voto BETWEEN -1 AND 31 ),
     PRIMARY KEY (appello, studente)
 );
 
