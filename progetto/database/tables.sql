@@ -65,7 +65,7 @@ CREATE TABLE universal.appelli (
 CREATE TABLE universal.iscritti (
     appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
     studente uuid NOT NULL REFERENCES universal.utenti(id),
-    voto INTEGER CHECK( voto BETWEEN -1 AND 31 ),
+    voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
     PRIMARY KEY (appello, studente)
 );
 
