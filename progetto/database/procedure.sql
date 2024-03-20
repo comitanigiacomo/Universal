@@ -7,11 +7,15 @@ CREATE OR REPLACE PROCEDURE studentToExStudent (
 )
   LANGUAGE plpgsql
   AS $$
-
     DECLARE
         matricola_ex_studente INTEGER;
+        cdl INTEGER;
     BEGIN
         SELECT matricola INTO matricola_ex_studente
+        FROM universal.studenti
+        WHERE id = _id;
+
+        SELECT corso_di_laurea INTO cdl
         FROM universal.studenti
         WHERE id = _id;
 
@@ -19,8 +23,8 @@ CREATE OR REPLACE PROCEDURE studentToExStudent (
         SET tipo = 'ex_studente'
         WHERE universal.utenti.id = _id;
 
-        INSERT INTO universal.ex_studenti (id, motivo, matricola)
-        VALUES (_id, _motivo, matricola_ex_studente);
+        INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
+        VALUES (_id, _motivo, matricola_ex_studente,cdl);
 
         DELETE FROM universal.studenti
         WHERE universal.studenti.id = _id;
@@ -80,7 +84,7 @@ CREATE OR REPLACE PROCEDURE universal.insert_teaching(
     LANGUAGE plpgsql
     AS $$
         BEGIN
-            INSERT INTO universal.insegnamenti(nome, descrizione, anno, responsabile, corso_di_laurea)
+            INSERT INTO universal.insegnamenti(nome, descrizione, anno, docente_responsabile, corso_di_laurea)
             VALUES (_nome, _descrizione, _anno, _responsabile, _corso_di_laurea);
         END;
     $$;
@@ -88,24 +92,60 @@ CREATE OR REPLACE PROCEDURE universal.insert_teaching(
 -- INSERISCE UN APPELLO
 
 CREATE OR REPLACE PROCEDURE universal.insert_exam_session(
-    _nome VARCHAR(40),
-    _descrizione TEXT,
-    _anno INTEGER,
-    _responsabile uuid,
-    _corso_di_laurea INTEGER
+    _data DATE,
+    _luogo VARCHAR(40),
+    _insegnamento INTEGER
 )
     LANGUAGE plpgsql
     AS $$
         BEGIN
-            INSERT INTO universal.insegnamenti(nome, descrizione, anno, responsabile, corso_di_laurea)
-            VALUES (_nome, _descrizione, _anno, _responsabile, _corso_di_laurea);
+            INSERT INTO universal.appelli(data, luogo, insegnamento)
+            VALUES (_data, _luogo, _insegnamento);
         END;
     $$;
 
+-- ISCRIVE UNO STUDENTE AD UN APPELLO ( DATO IL SUO ID E APPELLO, SPERO DI AVERLO NELLA SESSIONE PHP )
+CREATE OR REPLACE PROCEDURE universal.subscription(
+    _id uuid, -- HO TUTTE LE INFORMAZIONI DI STUDENTE PER get_student()
+    _appello INTEGER
+)
+    LANGUAGE plpgsql
+    AS $$
+        DECLARE
+        BEGIN
+            INSERT INTO universal.iscritti(appello, studente,voto)
+            VALUES (_appello, _id,NULL);
+        END;
+    $$;
 
 -- MODIFICA PASSWORD STUDENTE
 
--- ISCRIZIONE APPELLO STUDENTE
+-- DOCENTE METTE VALUTAZIONE
+CREATE OR REPLACE PROCEDURE universal.insert_grade(
+    _id_studente uuid,
+    _id_docente uuid,
+    codice_appello INTEGER,
+    _voto INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Controllo se il docente è responsabile dell'appello specificato
+    IF NOT EXISTS (
+        SELECT 1
+        FROM universal.insegnamenti AS ins
+        WHERE ins.docente_responsabile = _id_docente
+    ) THEN
+        RAISE EXCEPTION 'Il docente specificato non è responsabile per l''appello specificato.';
+    END IF;
+
+    -- Aggiornamento del voto dello studente nell'appello specificato
+    UPDATE universal.iscritti
+    SET voto = _voto
+    WHERE studente = _id_studente AND appello = codice_appello;
+END;
+$$;
+
 
 -- DISISCRIZIONE APPELLO STUDENTE
 
