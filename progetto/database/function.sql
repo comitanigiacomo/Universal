@@ -581,50 +581,259 @@ CREATE OR REPLACE FUNCTION universal.get_grades_of_ex_student(_id uuid)
             END;
         $$;
 
--- RESTITUISCE ESAMI MANCANTI ALLA LAUREA
-CREATE OR REPLACE FUNCTION universal.get_grades_of_ex_students()
-        RETURNS TABLE (
-            nome VARCHAR(40),
-            cognome VARCHAR(40),
-            nome_insegnamento TEXT,
-            voto INTEGER,
-            data DATE
-        )
-        LANGUAGE plpgsql
-        AS $$
-            BEGIN
-                RETURN QUERY
-                SELECT
-                    u.nome,
-                    u.cognome,
-                    ins.nome,
-                    i.voto,
-                    a.data
-                FROM universal.iscritti AS i
-                    INNER JOIN universal.utenti AS u ON u.id = i.studente
-                    INNER JOIN universal.appelli AS a ON i.appello = a.codice
-                    INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
-                WHERE u.tipo = 'ex_studente'
-                ORDER BY voto;
-            END ;
-        $$;
+-- RESTITUISCE ESAMI MANCANTI ALLA LAUREA ( STUDENTI  ISCRITTI )
+-- Uno studente quando passa un esame ha una voce in iscritti con un voto. tutti i voti rimangono quindi in iscritti fino a quando lo studente non diventa ex studente
+CREATE OR REPLACE FUNCTION universal.get_missing_exams_for_graduation(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        docente_responsabile uuid,
+        corso_di_laurea INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            ins.docente_responsabile,
+            cdl.codice
+        FROM universal.insegnamenti AS ins
+        INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
+        INNER JOIN universal.studenti AS s ON cdl.codice = s.corso_di_laurea
+        LEFT JOIN universal.iscritti AS isc ON isc.insegnamento = ins.codice AND isc.studente = _id
+        WHERE (isc.voto IS NULL AND isc.appello IS NOT NULL) OR (isc.appello IS NULL)
+            AND cdl.codice = s.corso_di_laurea
+        ORDER BY ins.nome;
+    END;
+$$;
 
+-- RESTITUISCE INSEGNAMENTI DI DI CUI UN DOCENTE E' RESPONSABILE
+CREATE OR REPLACE FUNCTION universal.get_teaching_activity_of_professor(_id uuid)
+    RETURNS TABLE (
+        codice_insegnamento INTEGER,
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        docente_responsabile uuid,
+        corso_di_laurea INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.codice INTEGER,
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            ins.docente_responsabile,
+            cdl.codice
+        FROM universal.insegnamenti AS ins
+            INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
+            INNER JOIN universal.docenti AS d ON ins.docente_responsabile = d.id
+        WHERE _id = d.id
+        ORDER BY ins.codice;
+    END;
+$$;
 
--- RESTITUISCE INSEGNAMENTIDI DI CUI UN DOCENTE E' RESPONSABILE
-
--- RESTITUISE TUTTI GLI STUDENTI ASCRITTI AGLI APPELLI DI UN DOCENTE
+-- RESTITUISE TUTTI GLI STUDENTI ISCRITTI AGLI APPELLI DI UN INSEGNAMENTO DI CUI UN DOCENTE È RESPONSABILE
+CREATE OR REPLACE FUNCTION universal.getStudentsEnrolledInTeachingAppointments(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        cognome VARCHAR(40),
+        matricola INTEGER,
+        data DATE,
+        luogo VARCHAR(40),
+        insegnamento INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.nome,
+            u.cognome,
+            s.matricola,
+            a.data,
+            a.luogo,
+            ins.codice
+        FROM
+            universal.iscritti AS i
+            INNER JOIN universal.utenti AS u ON i.studente = u.id
+            INNER JOIN universal.insegnamenti AS ins ON i.insegnamento = ins.codice
+            INNER JOIN universal.studenti AS s ON u.id = s.id
+            INNER JOIN universal.appelli AS a ON ins.codice = a.insegnamento
+        WHERE
+            ins.docente_responsabile = _id  -- Filtra solo gli insegnamenti di cui il docente è responsabile
+        ORDER BY matricola;
+    END;
+$$;
 
 -- RESTITUISCE TUTTE LE VALUAZIONI CHE UN DOCENTE HA DATO
-
--- RESTITUISCE TUTTI GLI APPELLI DEGLI INSEGNAMENTI DEL CORSO DI LAUREA DI UNO STUDENTE
-
--- RESTITUISCE LA MEDIA DELLE VALUTAZIONI DI UNO STUDENTE
+CREATE OR REPLACE FUNCTION universal.getTeacherGrades(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        cognome VARCHAR(40),
+        matricola INTEGER,
+        data DATE,
+        luogo VARCHAR(40),
+        insegnamento INTEGER,
+        voto INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.nome,
+            u.cognome,
+            s.matricola,
+            a.data,
+            a.luogo,
+            ins.codice,
+            i.voto
+        FROM
+            universal.iscritti AS i
+            INNER JOIN universal.utenti AS u ON i.studente = u.id
+            INNER JOIN universal.insegnamenti AS ins ON i.insegnamento = ins.codice
+            INNER JOIN universal.studenti AS s ON u.id = s.id
+            INNER JOIN universal.appelli AS a ON ins.codice = a.insegnamento
+        WHERE
+            ins.docente_responsabile = _id  -- Filtra solo gli insegnamenti di cui il docente è responsabile
+        ORDER BY matricola;
+    END;
+$$;
+-- RESTITUISCE GLI APPELLI DI TUTTI GLI INSEGNAMENTI DEL CORSO DI LAUREA DI UNO STUDENTE
+CREATE OR REPLACE FUNCTION universal.getAllTeachingAppointmentsForStudentDegree(_id uuid)
+    RETURNS TABLE (
+        codice INTEGER,
+        data DATE,
+        luogo VARCHAR(40),
+        insegnamento INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            a.codice,
+            a.data,
+            a.luogo,
+            a.insegnamento
+        FROM
+            universal.appelli AS a
+            INNER JOIN universal.iscritti AS i ON i.appello = a.codice
+            INNER JOIN universal.studenti AS s ON i.studente = _id
+            INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
+            INNER JOIN universal.corsi_di_laurea AS cdl ON s.corso_di_laurea = cdl.codice
+        WHERE s.corso_di_laurea = ins.corso_di_laurea
+        ORDER BY data;
+    END;
+$$;
 
 -- RESTIUISCE TUTTE LE VALUTAZIONI DI UNO STUDENTE
+CREATE OR REPLACE FUNCTION universal.get_student_grades(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        data DATE,
+        docente_responsabile uuid,
+        corso_di_laurea INTEGER,
+        voto INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            a.data,
+            ins.docente_responsabile,
+            ins.corso_di_laurea,
+            i.voto
+        FROM universal.iscritti AS i
+            INNER JOIN universal.appelli AS a ON i.appello = a.codice
+            INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
+        WHERE i.voto IS NOT NULL and i.studente = _id
+        ORDER BY data;
+    END;
+$$;
 
 -- RESTITUISCE MEDIA VALUTAZIONI DI UNO STUDENTE
+CREATE OR REPLACE FUNCTION universal.get_student_average(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        cognome VARCHAR(40),
+        matricola INTEGER,
+        media DECIMAL
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        total_votes INTEGER := 0;
+        total_count INTEGER := 0;
+        rec_row RECORD;
+        grade_cursor CURSOR FOR SELECT * FROM universal.get_student_grades(_id);
+    BEGIN
+        OPEN grade_cursor;
+        LOOP
+            FETCH grade_cursor INTO rec_row;
+            EXIT WHEN NOT FOUND;
+
+            total_votes := total_votes + rec_row.voto;
+            total_count := total_count + 1;
+        END LOOP;
+        CLOSE grade_cursor;
+
+        -- Calcola la media se ci sono valutazioni
+        IF total_count > 0 THEN
+            media := ROUND(total_votes::DECIMAL / total_count, 2);
+        ELSE
+            media := 0;
+        END IF;
+         RETURN QUERY SELECT u.nome, u.cognome, s.matricola, media
+                          FROM universal.studenti AS s
+                            INNER JOIN universal.utenti AS u ON s.id = u.id
+                          WHERE u.id = _id;
+    END;
+$$;
 
 -- RESTITUISCE VOTI DATI AD EX STUDENTE
+CREATE OR REPLACE FUNCTION universal.get_exstudent_grades(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        cognome VARCHAR(40),
+        matricola INTEGER,
+        insegnamento INTEGER,
+        voto INTEGER,
+        data DATE,
+        corso_di_laurea INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ex.nome,
+            ex.cognome,
+            ex.matricola,
+            ins.codice,
+            ex.voto,
+            ex.data,
+            ex.insegnamento
+        FROM universal.storico_valutazioni AS ex
+            INNER JOIN universal.insegnamenti AS ins ON ex.insegnamento = ins.codice
+        WHERE ex.id = _id
+        ORDER BY data;
+    END;
+$$;
 
 
 
