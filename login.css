@@ -1,110 +1,99 @@
-/* Stili per il corpo della pagina */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+/* Impostazioni di base */
+html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
+    font-family: Arial, sans-serif;
 }
 
-/* Stili per l'intestazione */
-.header {
-    background-color: #007bff;
-    color: #fff;
-    padding: 20px 0;
+/* Footer */
+footer {
+    height: 10%;
+    background-color: #27292b; /* Colore grigio chiaro */
+    display: flex;
+    flex-direction: column;
     text-align: center;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.747);
+}
+footer div {
+    margin : 5px;
 }
 
-.header a {
-    color: #fff;
+footer a {
+    color: #007bff;
+}
+
+.logo {
+    margin-bottom: 80px;
+    font-size: 37px; /* Dimensione del testo */
+    font-weight: bold; /* Grassetto */
+}
+
+.logo a {
     text-decoration: none;
+    color : black;
+}
+.logo a:hover {
+    color: #007bff; /* Cambia colore al passaggio del mouse */
+    transition: 0.3s;
 }
 
-/* Stili per il logo */
-#uni {
-    font-size: 24px;
-    font-weight: bold;
+/* Contenitore */
+.contenitore {
+    height: 90%;
+    background-color: #ffffff; /* Colore bianco */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra il contenuto verticalmente */
+    align-items: center; /* Centra il contenuto orizzontalmente */
+    background-image: url('background.png'); 
 }
 
-#versal {
-    color: rgb(255, 255, 255);
+/* Rettangolo Centrale */
+.rettangolo-centrale {
+    width: 50%;
+    height: 50%;
+    background-color: #f8f9fa; /* Colore grigio chiaro */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra il contenuto verticalmente */
+    align-items: center; /* Centra il contenuto orizzontalmente */
+    border-radius: 15px; /* Bordi arrotondati */
+    padding: 20px; /* Spazio interno */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Ombra leggera */
+    z-index: 1; /* Imposta l'indice di pila sopra l'immagine di sfondo */
+    opacity: 0.9;
 }
 
-/* Stili per il contenuto principale */
-.colonna-centrale {
-    margin-top: 50px;
-    text-align: center;
-}
-
-.content-block-title {
-    font-size: 28px;
-    color: #333;
-}
-
-/* Stili per il form di accesso */
+/* Stile dei campi di input */
+/* Stile dei campi di input */
 .form-group {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.form-control {
-    width: 100%;
-    height: 50px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    margin-bottom: 20px;
+.form-group input {
+    width: 250px; /* Imposta la larghezza automatica */
+    max-width: 100%; /* Limita la larghezza massima all'interno del container */
+    padding: 5px; /* Aggiungi padding per spaziatura */
+    margin-bottom: 5px; /* Aggiungi margine inferiore per separazione */
 }
 
+
+/* Stile del pulsante di invio */
 .btn-primary {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 15px;
-    font-size: 18px;
-    cursor: pointer;
+    background-color: #007bff; /* Colore blu */
+    color: #ffffff; /* Colore testo bianco */
+    border: none; /* Rimuovi il bordo */
+    border-radius: 5px; /* Bordi arrotondati */
+    padding: 10px 20px; /* Spazio interno */
+    cursor: pointer; /* Cambia il cursore al passaggio */
+    transition: background-color 0.3s ease; /* Effetto di transizione */
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
-}
-
-/* Stili per il footer */
-#footer {
-    background-color: #333;
-    color: #fff;
-    padding: 20px 0;
-    text-align: center;
-}
-
-#footer ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-#footer ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-#footer ul li a {
-    color: #fff;
-    text-decoration: none;
-}
-
-.firma {
-    margin-top: 20px;
-    font-size: 16px;
-}
-
-.firma a {
-    color: #fff;
-    text-decoration: none;
-}
-
-.firma a:hover {
-    text-decoration: underline;
+    background-color: #0056b3; /* Cambia colore al passaggio del mouse */
 }

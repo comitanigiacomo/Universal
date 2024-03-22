@@ -10,52 +10,72 @@
 
 <body >
     <header class="header" role="banner">
-        <div class="logo-container container-fluid">
-            <div>
-                <a class="nav-link active" id="uni" aria-current="page" href="/">Uni<span id="versal">versal</span></a>
-            </div>
-        </div>
     </header>
-    
-    <div class="row">
-        <div class="col-lg-4 col-md-4 col-sm-6 col-md-offset-4 col-sm-offset-3 col-lg-offset-4 colonna-centrale"
-            role="main">
-            <h1 class="content-block-title clearfix" id="main-content">
-                Autenticazione</h1>
-            <br>
-                <form method="POST" action= /progetto/webapp/scripts/rightConnection.php>
-                    <div class="form-group" >
-                        Inserisci le tue credenziali per accedere ai servizi dell&#39;Università degli
-                        Studi di universal. Tutti i campi sono obbligatori.
-                        <input id="email"  class="form-control input-lg typeahead top-buffer-s" name="email" type="email" class="form-control bg-transparent rounded-0 my-4" placeholder="nome.cognome@tipo.universal.it" 
-                            aria-label="Email" value="nome.cognome@studenti.universal.it" aria-describedby="basic-addon1">
-                        <br>
-                        <input id="password" class="form-control input-lg pass" name="password" type="password" class="form-control  bg-transparent rounded-0 my-4" 
-                            placeholder="Password" aria-label="Username" aria-describedby="basic-addon1" value="password">
-                        <br>
-                        <button type="submit" class="btn btn-primary btn-lg btn-block">Accedi</button>
-                    </div>
-                </form>
+
+    <div class = "contenitore">
+        <div class = "rettangolo-centrale">
+        <div class = "logo">
+            <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+        </div>
+            <form method="POST" action= /progetto/webapp/scripts/rightConnection.php>
+                        <div class="form-group" >
+                            Inserisci le tue credenziali per accedere ai servizi dell&#39;Università degli
+                            Studi di universal. Tutti i campi sono obbligatori.
+                            <br>
+                            <br>
+                            <br>
+                            <input id="email"  class="form-control input-lg typeahead top-buffer-s" name="email" type="email" class="form-control bg-transparent rounded-0 my-4" placeholder = "nome.cognome@studenti.universal.it" 
+                                aria-label="Email" value="" aria-describedby="basic-addon1">
+                            <br>
+                            <input id="password" class="form-control input-lg pass" name="password" type="password" class="form-control  bg-transparent rounded-0 my-4" 
+                                placeholder="Password" aria-label="Username" aria-describedby="basic-addon1" value="">
+                            <br>
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Accedi</button>
+                        </div>
+                    </form> 
+
         </div>
     </div>
 
+    <footer>
+    <div>
+        Università degli studi di Universal
+    </div>
+    <div>
+        Made by Jack during the small hours
+    </div>
+    <div>
+        <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+        <br>
+    </div>
+</footer>
+
+    <script>
+
+        var possibleEmails = [
+            "nome.cognome@docenti.universal.it",
+            "nome.cognome@segretari.universal.it",
+            "nome.cognome@studenti.universal.it"
+        ];
+
+        // Funzione per aggiornare il valore predefinito dell'input
+        function updateDefaultEmail() {
+            var emailInput = document.getElementById("email");
+            var index = 0;
+
+            function updateEmail() {
+                emailInput.placeholder = possibleEmails[index];
+                index = (index + 1) % possibleEmails.length;
+            }
+
+            setInterval(updateEmail, 2000);
+        }
+
+        updateDefaultEmail();
+    </script>
     
-    <footer id="footer" class="container footer text-center top-buffer-s" >
-        <nav>
-            <ul>
-                <li>
-                    <a href="#">Dichiarazione di accessibilità</a>
-                </li>
-                <li>
-                    <a href="#">Privacy e cookie</a>
-                </li>
-            </ul>
-        </nav>
-        <p class="firma">Università degli studi di Informatica</p>
-        <p>
-            <a href="#">Assistenza Universal</a>
-        </p>
-    </footer>
+    
+
 </body>
 
 </html>

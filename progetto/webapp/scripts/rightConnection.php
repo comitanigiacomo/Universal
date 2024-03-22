@@ -34,7 +34,7 @@
       $domain_parts = explode('.', $domain_part);
       $type = $domain_parts[0];
   
-      if ($type == 'studente' || $type == 'docente' || $type == 'segreterio' || $type == 'exstudenti') {
+      if ($type == 'studenti' || $type == 'docenti' || $type == 'segretari' || $type == 'exstudenti') {
           return $type;
       } else {
           print("Tipo non riconosciuto");
@@ -55,12 +55,4 @@
             Redirect("../segreteria/index.php");
           }
     }
-
-
-
-   
-
 ?>
-
-
-
