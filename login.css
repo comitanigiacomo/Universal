@@ -83,7 +83,7 @@ footer a {
 }
 
 .form-group input {
-    width: 250px; /* Imposta la larghezza automatica */
+    width: 240px; /* Imposta la larghezza automatica */
     max-width: 100%; /* Limita la larghezza massima all'interno del container */
     padding: 5px; /* Aggiungi padding per spaziatura */
     margin-bottom: 5px; /* Aggiungi margine inferiore per separazione */

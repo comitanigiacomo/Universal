@@ -40,10 +40,10 @@
         <div class="funzioni">
 
             <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
-            <button onclick="window.location.href='/carriera.php'">Visualizza Tutti Gli Appelli Del Tuo Corso</button>
-            <button onclick="window.location.href='/carriera.php'">Visualizza Tutti Gli Appelli</button>
-            <button onclick="window.location.href='/carriera.php'">Visualizza Tutti I Corsi Di Laurea</button>
-            <button onclick="window.location.href='/carriera.php'">Visualizza Gli Esami Mancanti Alla Laurea</button>
+            <button onclick="window.location.href='./visualizzaAppelliCorso.php'">Visualizza Tutti Gli Appelli Del Tuo Corso</button>
+            <button onclick="window.location.href='./visualizzaAppelli.php'">Visualizza Tutti Gli Appelli</button>
+            <button onclick="window.location.href='./visualizzaCorsiDiLaurea.php'">Visualizza Tutti I Corsi Di Laurea</button>
+            <button onclick="window.location.href='./visualizzaEsamiMancanti.php'">Visualizza Gli Esami Mancanti Alla Laurea</button>
 
         </div>
 

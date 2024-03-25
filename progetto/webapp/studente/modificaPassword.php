@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <br>
         <div class="titolo"><h3>Modifica Password</h3></div>
         <div class="modifica">
-        <form method="POST" action="./modificaPassword.php">
+        <form method="POST" action="">
     <div class="form-group">
         <input id="old_password" class="form-control input-lg typeahead top-buffer-s" name="old_password" type="password" class="form-control bg-transparent rounded-0 my-4" placeholder="Old Password" aria-label="Email" aria-describedby="basic-addon1">
         <br>
