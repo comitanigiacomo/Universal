@@ -1,0 +1,110 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+footer {
+    height: 10%;
+    background-color: #27292b; /* Colore grigio chiaro */
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.747);
+}
+
+footer div {
+    margin : 5px;
+}
+
+footer a {
+    color: #007bff;
+}
+
+table {
+    table-layout: fixed;
+    width:fit-content;
+    border: 1px solid #000;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+table td {
+    padding: 5px; /* Aggiungi il padding desiderato */
+}
+
+table tr td button {
+    height:fit-content;
+}
+
+/* Stile per le righe dispari */
+tr:nth-child(odd) {
+    background-color: #c7eeff; /* Colore per le righe dispari */
+}
+
+/* Stile per le righe pari */
+tr:nth-child(even) {
+    background-color: #ffffff; /* Colore per le righe pari */
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.sfondo {
+    height: 90%;
+    display: flex;
+    background-image: url('/background.png'); 
+    justify-content: center;
+    align-items: center;
+}
+
+.contenitore {
+    background-color: #ffffff; 
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    padding: 30px;
+    height: 70%;
+    width: 70%;
+}
+
+.contenitore .titolo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contenitore .tabella {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.logo {
+    font-size: 37px; /* Dimensione del testo */
+    font-weight: bold; /* Grassetto */
+    display: flex;
+    justify-content: center;
+}
+
+.logo a {
+    text-decoration: none;
+    color : black;
+}
+.logo a:hover {
+    color: #007bff; /* Cambia colore al passaggio del mouse */
+    transition: 0.3s;
+}

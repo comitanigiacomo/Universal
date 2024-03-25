@@ -26,7 +26,6 @@ footer a {
 }
 
 .logo {
-    margin-bottom: 80px;
     font-size: 37px; /* Dimensione del testo */
     font-weight: bold; /* Grassetto */
 }
@@ -65,6 +64,14 @@ footer a {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Ombra leggera */
     z-index: 1; /* Imposta l'indice di pila sopra l'immagine di sfondo */
     opacity: 0.9;
+}
+
+.rettangolo-centrale .informazioni {
+    margin-bottom: 30px;
+}
+.contenitore .form {
+    display: flex;
+    justify-content: center;
 }
 
 /* Stile dei campi di input */
