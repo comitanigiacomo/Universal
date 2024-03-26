@@ -130,6 +130,25 @@ $$ LANGUAGE plpgsql;
             END ;
         $$;
 
+-- RESTITUISCE L'ID DELLO STUDENTE A PARTIRE DAI DATI DI AUTENTICAZIONE
+CREATE OR REPLACE FUNCTION universal.get_id(_email VARCHAR(255))
+    RETURNS TABLE (
+        id uuid
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.id
+        FROM universal.utenti AS u
+        WHERE u.email = _email;
+    END ;
+    $$;
+
+
+
+
 -- RESTITUISCE UNO STUDENTE DATO IL SUO ID
 -- OK
      CREATE OR REPLACE FUNCTION universal.get_student(_id uuid)
@@ -138,7 +157,7 @@ $$ LANGUAGE plpgsql;
             cognome VARCHAR(255),
             email VARCHAR(255),
             matricola INTEGER,
-            corso_di_laurea INTEGER
+            corso_di_laurea TEXT
         )
         LANGUAGE plpgsql
         AS $$
@@ -149,9 +168,10 @@ $$ LANGUAGE plpgsql;
                     u.cognome,
                     u.email,
                     s.matricola,
-                    s.corso_di_laurea
+                    cdl.nome
                 FROM universal.utenti AS u
                     INNER JOIN universal.studenti as s ON _id = s.id
+                    INNER JOIN universal.corsi_di_laurea AS cdl ON s.corso_di_laurea = cdl.codice
                 WHERE u.id = _id;
             END ;
         $$;
@@ -323,14 +343,14 @@ BEGIN
                            CASE
                                WHEN tipo = 'studente' THEN 'studenti.universal.it'
                                WHEN tipo = 'docente' THEN 'docenti.universal.it'
-                               WHEN tipo = 'segretario' THEN 'segretario.universal.it'
+                               WHEN tipo = 'segretario' THEN 'segretari.universal.it'
                            END;
     ELSE
         email_generata := nome || '.' || cognome || '@' ||
                            CASE
                                WHEN tipo = 'studente' THEN 'studenti.universal.it'
                                WHEN tipo = 'docente' THEN 'docenti.universal.it'
-                               WHEN tipo = 'segretario' THEN 'segretario.universal.it'
+                               WHEN tipo = 'segretario' THEN 'segretari.universal.it'
                            END;
     END IF;
     RETURN email_generata;
@@ -420,6 +440,7 @@ CREATE OR REPLACE FUNCTION universal.get_exam_sessions(_codice INTEGER)
 -- OK
 CREATE OR REPLACE FUNCTION universal.get_all_exam_sessions()
         RETURNS TABLE (
+            codice INTEGER,
             data DATE,
             luogo VARCHAR(40),
             nome VARCHAR(40),
@@ -430,6 +451,7 @@ CREATE OR REPLACE FUNCTION universal.get_all_exam_sessions()
             BEGIN
                 RETURN QUERY
                 SELECT
+                    a.codice,
                     a.data,
                     a.luogo,
                     i.nome,
@@ -444,8 +466,7 @@ CREATE OR REPLACE FUNCTION universal.get_all_exam_sessions()
 
 CREATE OR REPLACE FUNCTION universal.get_student_exam_enrollments(_id uuid)
         RETURNS TABLE (
-            nome VARCHAR(40),
-            cognome VARCHAR(40),
+            codice INTEGER,
             data DATE,
             luogo VARCHAR(40),
             nome_insegnamento VARCHAR(40)
@@ -455,8 +476,7 @@ CREATE OR REPLACE FUNCTION universal.get_student_exam_enrollments(_id uuid)
             BEGIN
                 RETURN QUERY
                 SELECT
-                    u.nome,
-                    u.cognome,
+                    a.codice,
                     a.data,
                     a.luogo,
                     ins.nome
@@ -588,7 +608,7 @@ CREATE OR REPLACE FUNCTION universal.get_missing_exams_for_graduation(_id uuid)
         nome VARCHAR(40),
         descrizione TEXT,
         anno INTEGER,
-        docente_responsabile uuid,
+        docente_responsabile TEXT,
         corso_di_laurea INTEGER
     )
     LANGUAGE plpgsql
@@ -599,12 +619,13 @@ CREATE OR REPLACE FUNCTION universal.get_missing_exams_for_graduation(_id uuid)
             ins.nome,
             ins.descrizione,
             ins.anno,
-            ins.docente_responsabile,
+            CONCAT(u.nome, ' ', u.cognome) AS nome,
             cdl.codice
         FROM universal.insegnamenti AS ins
         INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
         INNER JOIN universal.studenti AS s ON cdl.codice = s.corso_di_laurea
         LEFT JOIN universal.iscritti AS isc ON isc.insegnamento = ins.codice AND isc.studente = _id
+        INNER JOIN universal.utenti AS u ON u.id = ins.docente_responsabile
         WHERE (isc.voto IS NULL AND isc.appello IS NOT NULL) OR (isc.appello IS NULL)
             AND cdl.codice = s.corso_di_laurea
         ORDER BY ins.nome;
@@ -641,7 +662,7 @@ CREATE OR REPLACE FUNCTION universal.get_teaching_activity_of_professor(_id uuid
 $$;
 
 -- RESTITUISE TUTTI GLI STUDENTI ISCRITTI AGLI APPELLI DI UN INSEGNAMENTO DI CUI UN DOCENTE È RESPONSABILE
-CREATE OR REPLACE FUNCTION universal.getStudentsEnrolledInTeachingAppointments(_id uuid)
+CREATE OR REPLACE FUNCTION universal.get_students_enrolled_in_teaching_appointments(_id uuid)
     RETURNS TABLE (
         nome VARCHAR(40),
         cognome VARCHAR(40),
@@ -674,7 +695,7 @@ CREATE OR REPLACE FUNCTION universal.getStudentsEnrolledInTeachingAppointments(_
 $$;
 
 -- RESTITUISCE TUTTE LE VALUAZIONI CHE UN DOCENTE HA DATO
-CREATE OR REPLACE FUNCTION universal.getTeacherGrades(_id uuid)
+CREATE OR REPLACE FUNCTION universal.get_teacher_grades(_id uuid)
     RETURNS TABLE (
         nome VARCHAR(40),
         cognome VARCHAR(40),
@@ -708,12 +729,12 @@ CREATE OR REPLACE FUNCTION universal.getTeacherGrades(_id uuid)
     END;
 $$;
 -- RESTITUISCE GLI APPELLI DI TUTTI GLI INSEGNAMENTI DEL CORSO DI LAUREA DI UNO STUDENTE
-CREATE OR REPLACE FUNCTION universal.getAllTeachingAppointmentsForStudentDegree(_id uuid)
+CREATE OR REPLACE FUNCTION universal.get_all_teaching_appointments_for_student_degree(_id uuid)
     RETURNS TABLE (
         codice INTEGER,
         data DATE,
         luogo VARCHAR(40),
-        insegnamento INTEGER
+        insegnamento VARCHAR(40)
     )
     LANGUAGE plpgsql
     AS $$
@@ -723,15 +744,14 @@ CREATE OR REPLACE FUNCTION universal.getAllTeachingAppointmentsForStudentDegree(
             a.codice,
             a.data,
             a.luogo,
-            a.insegnamento
+            ins.nome
         FROM
             universal.appelli AS a
-            INNER JOIN universal.iscritti AS i ON i.appello = a.codice
-            INNER JOIN universal.studenti AS s ON i.studente = _id
-            INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
-            INNER JOIN universal.corsi_di_laurea AS cdl ON s.corso_di_laurea = cdl.codice
-        WHERE s.corso_di_laurea = ins.corso_di_laurea
-        ORDER BY data;
+            INNER JOIN universal.insegnamenti AS ins ON ins.codice = a.insegnamento
+            INNER JOIN universal.studenti AS s ON s.corso_di_laurea = ins.corso_di_laurea
+        WHERE
+            s.id = _id
+        ORDER BY a.data;
     END;
 $$;
 
@@ -742,7 +762,7 @@ CREATE OR REPLACE FUNCTION universal.get_student_grades(_id uuid)
         descrizione TEXT,
         anno INTEGER,
         data DATE,
-        docente_responsabile uuid,
+        docente_responsabile TEXT,
         corso_di_laurea INTEGER,
         voto INTEGER
     )
@@ -755,12 +775,13 @@ CREATE OR REPLACE FUNCTION universal.get_student_grades(_id uuid)
             ins.descrizione,
             ins.anno,
             a.data,
-            ins.docente_responsabile,
+            CONCAT(u.nome, ' ', u.cognome) AS docente_responsabile,
             ins.corso_di_laurea,
             i.voto
         FROM universal.iscritti AS i
             INNER JOIN universal.appelli AS a ON i.appello = a.codice
             INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
+            INNER JOIN universal.utenti AS u ON ins.docente_responsabile = u.id
         WHERE i.voto IS NOT NULL and i.studente = _id
         ORDER BY data;
     END;
@@ -780,7 +801,7 @@ CREATE OR REPLACE FUNCTION universal.get_student_average(_id uuid)
         total_votes INTEGER := 0;
         total_count INTEGER := 0;
         rec_row RECORD;
-        grade_cursor CURSOR FOR SELECT * FROM universal.get_student_grades(_id);
+        grade_cursor CURSOR FOR SELECT * FROM universal.get_partial_carrer(_id);
     BEGIN
         OPEN grade_cursor;
         LOOP
@@ -832,6 +853,64 @@ CREATE OR REPLACE FUNCTION universal.get_exstudent_grades(_id uuid)
             INNER JOIN universal.insegnamenti AS ins ON ex.insegnamento = ins.codice
         WHERE ex.id = _id
         ORDER BY data;
+    END;
+$$;
+
+-- RESTITUISCE TUTTI I CORSI DI LAUREA PRESENTI
+CREATE OR REPLACE FUNCTION universal.get_all_cdl()
+    RETURNS TABLE (
+        codice INTEGER,
+        nome TEXT,
+        tipo INTEGER,
+        descrizione TEXT
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            cdl.codice,
+            cdl.nome,
+            cdl.tipo,
+            cdl.descrizione
+        FROM universal.corsi_di_laurea AS cdl
+        ORDER BY nome;
+    END;
+$$;
+
+-- RESTITUISCE LA CARRIERA DI UNO STUDENTE ( TUTTI GLI ESAMI FATTI NON DUPLICATI)
+CREATE OR REPLACE FUNCTION universal.get_partial_carrer(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        data DATE,
+        docente_responsabile TEXT,
+        corso_di_laurea INTEGER,
+        voto INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT DISTINCT ON (i.insegnamento)
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            a.data,
+            CONCAT(u.nome, ' ', u.cognome) AS docente_responsabile,
+            ins.corso_di_laurea,
+            i.voto
+        FROM
+            universal.iscritti i
+            INNER JOIN universal.insegnamenti AS ins ON ins.codice = i.insegnamento
+            INNER JOIN universal.appelli AS a ON i.appello = a.codice
+            INNER JOIN universal.utenti AS u ON iNS.docente_responsabile = u.id
+        WHERE
+            i.studente = _id AND i.voto IS NOT NULL
+        ORDER BY
+            i.insegnamento,
+            i.appello DESC;
     END;
 $$;
 

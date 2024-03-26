@@ -51,7 +51,7 @@ CREATE TABLE universal.insegnamenti (
     nome VARCHAR(40) NOT NULL CHECK(nome !~ '[0-9]'),
     descrizione TEXT,
     anno INTEGER CHECK(anno BETWEEN 2000 AND 2100),
-    docente_responsabile uuid NOT NULL REFERENCES universal.docenti(id),
+    docente_responsabile uuid NOT NULL REFERENCES universal.docenti(id) ,
     corso_di_laurea INTEGER NOT NULL REFERENCES universal.corsi_di_laurea(codice) ON UPDATE CASCADE
 );
 
@@ -61,13 +61,22 @@ CREATE TABLE universal.appelli (
     luogo VARCHAR(40) NOT NULL,
     insegnamento INTEGER NOT NULL REFERENCES universal.insegnamenti(codice) ON UPDATE CASCADE
 );
-
 CREATE TABLE universal.iscritti (
     appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
     studente uuid NOT NULL REFERENCES universal.utenti(id),
+    insegnamento INTEGER,
     voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
     PRIMARY KEY (appello, studente)
 );
+
+CREATE TABLE universal.ex_iscritti (
+    appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
+    studente uuid NOT NULL REFERENCES universal.utenti(id),
+    insegnamento INTEGER,
+    voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
+    PRIMARY KEY (appello, studente)
+);
+
 
 
 CREATE TABLE universal.propedeutico (
