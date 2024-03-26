@@ -8,6 +8,21 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
+    // Ottieni l'ID dell'appello e dell'utente
+    $appelloId = $_POST["appelloId"];
+    $userId = $_SESSION['id'];
+    
+    // Eseguire la chiamata alla procedura di iscrizione
+    $query_subscribe = "CALL universal.subscription($1, $2)";
+    $result_subscribe = pg_query_params($conn, $query_subscribe, array($userId, $appelloId));
+
+    if ($result_subscribe) {
+        echo '<script type="text/javascript">alert("Iscrizione effettuata con successo"); window.location = "./index.php";</script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore durante l\'iscrizione"); window.location = "./index.php";</script>';
+    }
+}
 
 ?>
 
@@ -20,42 +35,49 @@ if (!isset($_SESSION['email'])) {
 <body>
     <div class="sfondo">
         <div class="contenitore">
-        <div class="logo">
+            <div class="logo">
                 <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
                 <br><br>
-        </div>
-        <br>
-        <br>
-        <div class="titolo"><h1>Appelli Del Corso</h1></div>
-        <div class="tabella">
-            <table>
-                <tr>
-                    <th>Data</th>
-                    <th>Luogo</th>
-                    <th>Insegnamento</th>
-                </tr>
-                <?php
-                // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
-                $query_get_appointments = "SELECT * FROM universal.get_all_teaching_appointments_for_student_degree($1)";
-                $result_get_appointments = pg_query_params($conn, $query_get_appointments, array($_SESSION['id']));
+            </div>
+            <br>
+            <br>
+            <div class="titolo"><h1>Appelli Del Corso</h1></div>
+            <div class="tabella">
+                <table>
+                    <tr>
+                        <th>Data</th>
+                        <th>Luogo</th>
+                        <th>Insegnamento</th>
+                        <th>Azioni</th>
+                    </tr>
+                    <?php
+                    // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
+                    $query_get_appointments = "SELECT * FROM universal.get_all_teaching_appointments_for_student_degree($1)";
+                    $result_get_appointments = pg_query_params($conn, $query_get_appointments, array($_SESSION['id']));
 
-                // Itera sui risultati e stampa le righe della tabella
-                while ($row_appointment = pg_fetch_assoc($result_get_appointments)) {
-                    echo "<tr>";
-                    echo "<td>" . $row_appointment['data'] . "</td>";
-                    echo "<td>" . $row_appointment['luogo'] . "</td>";
-                    echo "<td>" . $row_appointment['insegnamento'] . "</td>";
-                    // Aggiungi qui il bottone per la disiscrizione
-                    echo "</tr>";
-                }
-                ?>
-            </table>
-
+                    // Verifica se ci sono risultati
+                    if ($result_get_appointments && pg_num_rows($result_get_appointments) > 0) {
+                        // Itera sui risultati e stampa le righe della tabella
+                        while ($row_appointment = pg_fetch_assoc($result_get_appointments)) {
+                            echo "<tr>";
+                            echo "<td>" . $row_appointment['data'] . "</td>";
+                            echo "<td>" . $row_appointment['luogo'] . "</td>";
+                            echo "<td>" . $row_appointment['insegnamento'] . "</td>";
+                            echo "<td>
+                                    <form method='post' action=''>
+                                        <input type='hidden' name='appelloId' value='".$row_appointment['codice']."' />
+                                        <button type='submit'>Iscriviti</button>
+                                    </form>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                    }
+                    ?>
+                </table>
+            </div>
         </div>
-                    
-
-        </div>
-        
     </div>
 
     <footer>
@@ -70,8 +92,5 @@ if (!isset($_SESSION['email'])) {
             <br>
         </div>
     </footer>
-
-    
-
 </body>
 </html>

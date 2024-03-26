@@ -49,15 +49,20 @@ footer a {
 }
 
 .contenitore .funzioni {
-    flex : 0.5;
+    flex : 1;
     display: flex;
     align-items: center;
+    flex-direction: column;
+    
 }
 
 .contenitore .funzioni button {
     display: flex;
     align-items: center;
     justify-content: center;
+    height: fit-content;
+    margin: 5px;
+    width: 400px;
 
 }
 
@@ -76,12 +81,6 @@ footer a {
     display: flex;
 }
 
-.contenitore .carriera {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px;
-}
 
 .contenitore .informazioni label {
     text-align: center;
@@ -93,10 +92,6 @@ footer a {
 }
 
 
-.carriera {
-    display: flex;
-    flex-direction: column;
-}
 
 button {
     padding: 10px 20px;

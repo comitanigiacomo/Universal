@@ -31,6 +31,7 @@ if (!isset($_SESSION['email'])) {
                         <th>Nome</th>
                         <th>Tipo</th>
                         <th>Descrizione</th>
+                        <th>Azioni</th>
                     </tr>
                     <?php
                     // Esegui la query per ottenere gli appelli degli esami
@@ -45,6 +46,9 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_all_cdl['nome'] . "</td>";
                             echo "<td>" . $row_get_all_cdl['tipo'] . "</td>";
                             echo "<td>" . $row_get_all_cdl['descrizione'] . "</td>";
+                            echo "<td>
+                                <button onclick=\"window.location.href='./visualizzaInsegnamenti.php?id=" . $row_get_all_cdl['codice'] . "'\">Visualizza Insegnamenti Del Corso</button>
+                                </td>";
                             echo "</tr>";
                         }
                     } else {
@@ -64,7 +68,7 @@ if (!isset($_SESSION['email'])) {
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com/">Assistenza Universal</a>
             <br>
         </div>
     </footer>
