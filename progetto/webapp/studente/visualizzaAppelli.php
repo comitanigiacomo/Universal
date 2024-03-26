@@ -7,6 +7,23 @@ if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
 }
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
+    // Ottieni l'ID dell'appello e dell'utente
+    $appelloId = $_POST["appelloId"];
+    $userId = $_SESSION['id'];
+    print_r($appelloId, $userId);
+    
+    // Eseguire la chiamata alla procedura di iscrizione
+    $query_subscribe = "CALL universal.subscription($1, $2)";
+    $result_subscribe = pg_query_params($conn, $query_subscribe, array($userId, $appelloId));
+
+    if ($result_subscribe) {
+        echo '<script type="text/javascript">alert("Iscrizione effettuata con successo"); window.location = "./index.php";</script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore durante l\'iscrizione"); window.location = "./index.php";</script>';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -32,6 +49,7 @@ if (!isset($_SESSION['email'])) {
                         <th>Luogo</th>
                         <th>Insegnamento</th>
                         <th>Corso di laurea</th>
+                        <th>Azioni</th>
                     </tr>
                     <?php
                     // Esegui la query per ottenere gli appelli degli esami
@@ -47,6 +65,12 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_all_exam_sessions['luogo'] . "</td>";
                             echo "<td>" . $row_get_all_exam_sessions['nome'] . "</td>";
                             echo "<td>" . $row_get_all_exam_sessions['corso_di_laurea'] . "</td>";
+                            echo "<td>
+                                    <form method='post' action=''>
+                                        <input type='hidden' name='appelloId' value='".$row_get_all_exam_sessions['codice']."' />
+                                        <button type='submit'>Iscriviti</button>
+                                    </form>
+                                </td>";
                             echo "</tr>";
                         }
                     } else {

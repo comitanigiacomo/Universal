@@ -44,16 +44,15 @@
             <button onclick="window.location.href='./visualizzaAppelli.php'">Visualizza Tutti Gli Appelli</button>
             <button onclick="window.location.href='./visualizzaCorsiDiLaurea.php'">Visualizza Tutti I Corsi Di Laurea</button>
             <button onclick="window.location.href='./visualizzaEsamiMancanti.php'">Visualizza Gli Esami Mancanti Alla Laurea</button>
+            <button onclick="window.location.href='./iscrizioni.php'">Visualizza Iscrizioni</button>
 
         </div>
 
         <div class="iscrizioni">
-
-        <button onclick="window.location.href='./iscrizioni.php'">Visualizza Iscrizioni</button>
         </div>
         <div class="carriera">
-            <button onclick="window.location.href='/carriera.php'">Visualizza Carriera</button>
-            <button onclick="window.location.href='/carriera_completa.php'">Visualizza Carriera Completa</button>
+            <button onclick="window.location.href='./visualizzaCarriera.php'">Visualizza Carriera</button>
+            <button onclick="window.location.href='./visualizzaCarrieraCompleta.php'">Visualizza Carriera Completa</button>
         </div>
     </div>
     </div>

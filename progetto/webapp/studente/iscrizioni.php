@@ -6,11 +6,24 @@ session_start();
 if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
-
-    print_r($_SESSION['id']);
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
+    // Ottieni l'ID dell'appello e dell'utente
+    $appelloId = $_POST["appelloId"];
+    $userId = $_SESSION['id'];
+    
+    // Esegui la chiamata alla procedura di disiscrizione
+    $query_unsubscribe = "CALL universal.unsubscribe_from_exam_appointment($1, $2)";
+    $result_unsubscribe = pg_query_params($conn, $query_unsubscribe, array($userId, $appelloId));
 
+    if ($result_unsubscribe) {
+        echo '<script type="text/javascript">alert("Disiscrizione effettuata con successo"); window.location = "./index.php";</script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore durante la disiscrizione"); window.location = "./index.php";</script>';
+    }
+
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,27 +52,28 @@ if (!isset($_SESSION['email'])) {
                 </tr>
                 <?php
                 // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
-                $query_get_enrollements = "SELECT * FROM universal.get_student_exam_enrollments($1)";
-                $result_get_enrollements = pg_query_params($conn, $query_get_enrollements, array($_SESSION['id']));
+                $query_get_enrollments = "SELECT * FROM universal.get_student_exam_enrollments($1)";
+                $result_get_enrollments = pg_query_params($conn, $query_get_enrollments, array($_SESSION['id']));
 
                 // Itera sui risultati e stampa le righe della tabella
-                while ($row_enrollements = pg_fetch_assoc($result_get_enrollements)) {
+                while ($row_enrollments = pg_fetch_assoc($result_get_enrollments)) {
                     echo "<tr>";
-                    echo "<td>" . $row_enrollements['data'] . "</td>";
-                    echo "<td>" . $row_enrollements['luogo'] . "</td>";
-                    echo "<td>" . $row_enrollements['nome_insegnamento'] . "</td>";
-                    // Aggiungi qui il bottone per la disiscrizione
-                    echo "<td><button onclick='unsubscribe(" . $row_enrollements['id_appuntamento'] . ")'>Disiscriviti</button></td>";
+                    echo "<td>" . $row_enrollments['data'] . "</td>";
+                    echo "<td>" . $row_enrollments['luogo'] . "</td>";
+                    echo "<td>" . $row_enrollments['nome_insegnamento'] . "</td>";
+                    // Form per la disiscrizione
+                    echo "<td>
+                            <form method='post' action='".$_SERVER['PHP_SELF']."'>
+                                <input type='hidden' name='appelloId' value='".$row_enrollments['codice']."' />
+                                <button type='submit'>Disiscriviti</button>
+                            </form>
+                        </td>";
                     echo "</tr>";
                 }
                 ?>
             </table>
-
         </div>
-                    
-
         </div>
-        
     </div>
 
     <footer>
@@ -74,8 +88,5 @@ if (!isset($_SESSION['email'])) {
             <br>
         </div>
     </footer>
-
-    
-
 </body>
 </html>
