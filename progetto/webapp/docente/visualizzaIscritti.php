@@ -8,6 +8,8 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
     // Recupera i dati dalla richiesta POST
     $id_studente = $_POST['_id'];
@@ -54,8 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Recupera il parametro codice_appello dalla URL
-                    $codice_appello = $_GET['codice_appello'];
+                    $codice_appello = $_POST['codice_appello'];
 
                     // Esegui la query per ottenere gli iscritti all'appello specificato
                     $query_get_exam_enrollments = "SELECT * FROM universal.get_exam_enrollments($1)";

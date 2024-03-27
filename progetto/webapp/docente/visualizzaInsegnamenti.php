@@ -51,7 +51,7 @@ if (!isset($_SESSION['email'])) {
                                 echo "<td>" . $row_get_teaching_activity_of_professor['nome'] . "</td>";
                                 echo "<td>" . $row_get_teaching_activity_of_professor['descrizione'] . "</td>";
                                 echo "<td>" . $row_get_teaching_activity_of_professor['anno'] . "</td>";
-                                echo "<td>" . $row_get_teaching_activity_of_professor['corso_di_laurea'] . "</td>";
+                                echo "<td>" . $row_get_teaching_activity_of_professor['nome_cdl'] . "</td>";
                                 echo "<td>
                                 <form method='post' action='./visualizzaAppelli.php'>
                                     <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_activity_of_professor['codice_insegnamento'] . "' />
