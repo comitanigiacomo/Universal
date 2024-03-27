@@ -8,6 +8,7 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
+// Verifica se il modulo è stato inviato tramite il metodo POST e se è stato impostato l'ID dell'appello
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
     // Ottieni l'ID dell'appello e dell'utente
     $appelloId = $_POST["appelloId"];
@@ -35,44 +36,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
 <body>
     <div class="sfondo">
         <div class="contenitore">
-        <div class="logo">
+            <div class="logo">
                 <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
                 <br><br>
-        </div>
-        <br>
-        <br>
-        <div class="titolo"><h1>Iscrizioni confermate</h1></div>
-        <div class="tabella">
-            <table>
-                <tr>
-                    <th>Data</th>
-                    <th>Luogo</th>
-                    <th>Insegnamento</th>
-                    <th>Azioni</th>
-                </tr>
-                <?php
-                // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
-                $query_get_enrollments = "SELECT * FROM universal.get_student_exam_enrollments($1)";
-                $result_get_enrollments = pg_query_params($conn, $query_get_enrollments, array($_SESSION['id']));
+            </div>
+            <br>
+            <br>
+            <div class="titolo"><h1>Iscrizioni confermate</h1></div>
+            <div class="tabella">
+                <table>
+                    <tr>
+                        <th>Data</th>
+                        <th>Luogo</th>
+                        <th>Insegnamento</th>
+                        <th>Azioni</th>
+                    </tr>
+                    <?php
+                    // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
+                    $query_get_enrollments = "SELECT * FROM universal.get_student_exam_enrollments($1)";
+                    $result_get_enrollments = pg_query_params($conn, $query_get_enrollments, array($_SESSION['id']));
 
-                // Itera sui risultati e stampa le righe della tabella
-                while ($row_enrollments = pg_fetch_assoc($result_get_enrollments)) {
-                    echo "<tr>";
-                    echo "<td>" . $row_enrollments['data'] . "</td>";
-                    echo "<td>" . $row_enrollments['luogo'] . "</td>";
-                    echo "<td>" . $row_enrollments['nome_insegnamento'] . "</td>";
-                    // Form per la disiscrizione
-                    echo "<td>
-                            <form method='post' action='".$_SERVER['PHP_SELF']."'>
-                                <input type='hidden' name='appelloId' value='".$row_enrollments['codice']."' />
-                                <button type='submit'>Disiscriviti</button>
-                            </form>
-                        </td>";
-                    echo "</tr>";
-                }
-                ?>
-            </table>
-        </div>
+                    // Itera sui risultati e stampa le righe della tabella
+                    while ($row_enrollments = pg_fetch_assoc($result_get_enrollments)) {
+                        echo "<tr>";
+                        echo "<td>" . $row_enrollments['data'] . "</td>";
+                        echo "<td>" . $row_enrollments['luogo'] . "</td>";
+                        echo "<td>" . $row_enrollments['nome_insegnamento'] . "</td>";
+                        // Form per la disiscrizione
+                        echo "<td>
+                                <form method='post' action='".$_SERVER['PHP_SELF']."'>
+                                    <input type='hidden' name='appelloId' value='".$row_enrollments['codice']."' />
+                                    <button type='submit'>Disiscriviti</button>
+                                </form>
+                            </td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                </table>
+            </div>
         </div>
     </div>
 
