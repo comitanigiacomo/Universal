@@ -57,7 +57,7 @@ if (!isset($_SESSION['email'])) {
                                     <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_activity_of_professor['codice_insegnamento'] . "' />
                                     <button type='submit'>Visualizza Appelli</button>
                                 </form>
-                            </td>";
+                                </td>";
                     echo "</tr>";
                                 echo "</tr>";
                             }

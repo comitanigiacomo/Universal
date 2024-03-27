@@ -56,8 +56,6 @@ $ufficio = $row_get_teacher['ufficio'];
             <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
             <button onclick="window.location.href='./visualizzaInsegnamenti.php'">Visualizza i tuoi insegnamenti</button>
             <button onclick="window.location.href='./visualizzaValutazioniAssegnate.php'">Visualizza le valutazioni assegnate</button>
-
-    
         </div>
     </div>
     </div>
