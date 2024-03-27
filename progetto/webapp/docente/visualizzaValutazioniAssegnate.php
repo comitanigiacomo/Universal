@@ -14,7 +14,7 @@ if (!isset($_SESSION['email'])) {
 <html>
 <head>
     <title>Valutazioni assegnate</title>
-    <link rel="stylesheet" type="text/css" href="./style.css">
+    <link rel="stylesheet" type="text/css" href="../studente/iscrizioni.css">
 </head>
 <body>
     <div class="sfondo">

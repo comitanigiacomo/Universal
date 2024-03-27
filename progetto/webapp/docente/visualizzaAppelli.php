@@ -9,8 +9,8 @@ if (!isset($_SESSION['email'])) {
 }
 
 // Recupera il parametro codice_insegnamento dalla URL
+$codice_insegnamento = $_POST['codice_insegnamento'];
 
-$codice_insegnamento = $_GET['codice_insegnamento'];
 
 // Variabili per memorizzare i valori predefiniti per nome e corso di laurea
 $nome = ""; // Inizializza vuoto per evitare errori
@@ -25,17 +25,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crea_appello"])) {
     // Chiamata alla procedura per creare un nuovo appello
     // Chiamata alla procedura per creare un nuovo appello
     $query_create_exam_session = "CALL universal.create_exam_session($1, $2, $3, $4)";
-    $result_create_exam_session = pg_query_params($conn, $query_create_exam_session, array($_SESSION['id'], $data, $luogo, $codice_insegnamento ));
+    $result_create_exam_session = pg_query_params($conn, $query_create_exam_session, array($_SESSION['id'], $data, $luogo, $codice_insegnamento));
 
     if ($result_create_exam_session) {
         // Appello creato con successo
         // Esegui le azioni necessarie, ad esempio reindirizzamento o visualizzazione di un messaggio di successo
         echo '<script>alert("Nuovo appello creato con successo!");</script>';
-        header("Location: ./index.php");
-        exit();
     } else {
         // Errore durante la creazione dell'appello
-        echo '<script>alert("Errore nella creazione dell `\'appello");</script>';
+         echo "Errore nell'esecuzione della query: " . pg_last_error($conn);
     }
 }
 
@@ -85,7 +83,7 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
                             echo "<td>" . $nome . "</td>";
                             echo "<td>" . $corso_di_laurea . "</td>";
                             echo "<td>
-                                <form method='get' action='./visualizzaIscritti.php'>
+                                <form method='post' action='./visualizzaIscritti.php'>
                                     <input type='hidden' name='codice_appello' value='" . $row_get_exam_sessions['codice_appello'] . "' />
                                     <button type='submit'>Visualizza Iscritti</button>
                                 </form>
@@ -97,16 +95,21 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
                     }
                     ?>
 
+                </table>
+                <table>
+
                     <tr>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                        <form method="post" action="">
                             <td><input type="date" name="data" required></td>
                             <td><input type="text" name="luogo" placeholder="Luogo" required></td>
+                            <input type='hidden' name='codice_insegnamento' value= <?php echo $codice_insegnamento?>>
                             <td><?php echo $nome; ?></td>
                             <td><?php echo $corso_di_laurea; ?></td> 
                             <td><button type="submit" name="crea_appello">Crea Nuovo Appello</button></td>
                         </form>
                     </tr>
                 </table>
+                
             </div>
         </div>
     </div>

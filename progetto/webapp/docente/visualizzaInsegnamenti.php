@@ -16,7 +16,7 @@ if (!isset($_SESSION['email'])) {
 <html>
 <head>
     <title>Insegnamenti Di Cui Sei Responsabile</title>
-    <link rel="stylesheet" type="text/css" href="./style.css">
+    <link rel="stylesheet" type="text/css" href="../studente/iscrizioni.css">
 </head>
 <body>
     <div class="sfondo">
@@ -53,7 +53,7 @@ if (!isset($_SESSION['email'])) {
                                 echo "<td>" . $row_get_teaching_activity_of_professor['anno'] . "</td>";
                                 echo "<td>" . $row_get_teaching_activity_of_professor['corso_di_laurea'] . "</td>";
                                 echo "<td>
-                                <form method='get' action='./visualizzaAppelli.php'>
+                                <form method='post' action='./visualizzaAppelli.php'>
                                     <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_activity_of_professor['codice_insegnamento'] . "' />
                                     <button type='submit'>Visualizza Appelli</button>
                                 </form>

@@ -1,8 +1,11 @@
 html, body {
-    height: 100%;
+    height :100%;
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 footer {
@@ -38,6 +41,7 @@ table {
     align-items: center;
     justify-content: center;
     margin-bottom: 50px;
+    border-radius: 5px;
 }
 
 table td, table th {
@@ -51,7 +55,7 @@ table tr:first-child th {
 
 /* Stile per le righe dispari */
 tr:nth-child(odd) {
-    background-color: #007bff; /* Colore per le righe dispari */
+    background-color: #3a99ff; /* Colore per le righe dispari */
     color: #ffffff;
 }
 
@@ -97,6 +101,7 @@ button:hover {
     width: fit-content;
     min-height: 70%;
     min-width: 50%;
+    height: fit-content;
 }
 
 .contenitore .titolo {
@@ -128,3 +133,7 @@ button:hover {
     transition: 0.3s;
 }
 
+.tabella {
+    display: flex;
+    flex-direction: column;
+}
