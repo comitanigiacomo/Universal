@@ -35,6 +35,7 @@
             $_SESSION['id'] = $row_get_id['id'];
             // L'utente è autorizzato, reindirizzalo alla pagina corretta
             $type = Get_type($email);
+            print_r($type);
             switch ($type){
                 case "studenti":
                     header("Location: /progetto/webapp/studente/index.php");
@@ -45,7 +46,7 @@
                 case "docenti":
                     header("Location: /progetto/webapp/docente/index.php");
                     exit();
-                case "segreteria":
+                case "segretari":
                     header("Location: /progetto/webapp/segreteria/index.php");
                     exit();
             }
