@@ -7,6 +7,7 @@ if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -49,23 +50,19 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_all_teachers['email'] . "</td>";
                             echo "<td>" . $row_get_all_teachers['ufficio'] . "</td>";
                             echo "<td>
-                            <form method='post' action=''>
-                                <input type='hidden' name='codice_appello' value='' />
-                                <button type='submit'>Licenzia Docente</button>
-                            </form>
-                            <form method='post' action='./visualizzaResponsabile.php'>
-                                <input type='hidden' name='codice_appello' value='' />
-                                <button type='submit'>Visualizza  Corsi Di Cui È Responsabile</button>
+                            <form method='post' action='./visualizzaInsegnamentiDelDocente.php'>
+                                <input type='hidden' name='id_docente' value='" . $row_get_all_teachers['id'] . "' />
+                                <button type='submit'>Visualizza Corsi Di Cui È Responsabile</button>
                             </form>
                             <form method='post' action='./visualizzaValutazioniDate.php'>
-                            <input type='hidden' name='codice_appello' value='' />
-                            <button type='submit'>Visualizza Valutazioni Assegnate</button>
-                        </form>
+                                <input type='hidden' name='id_docente' value='" . $row_get_all_teachers['id'] . "' />
+                                <button type='submit'>Visualizza Valutazioni Assegnate</button>
+                            </form>
                             </td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='5'>Nessun docente disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

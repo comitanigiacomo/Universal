@@ -57,11 +57,10 @@ $sede = $row_get_secretary['sede'];
         <div class="funzioni">
 
             <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
-            <button onclick="window.location.href='./visualizzaAppelli.php'">Visualizza Tutti Gli Appelli</button>
             <button onclick="window.location.href='./visualizzaCorsiDiLaurea.php'">Visualizza Tutti I Corsi Di Laurea</button>
             <button onclick="window.location.href='./visualizzaDocenti.php'">Visualizza Tutti I Docenti</button>
             <button onclick="window.location.href='./visualizzaStudenti.php'">Visualizza Tutti Gli Studenti</button>
-            <button onclick="window.location.href='./visualizzaExstudenti.php'">Visualizza Tutti Gli Ex Studenti</button>
+            <button onclick="window.location.href='./visualizzaExStudenti.php'">Visualizza Tutti Gli Ex Studenti</button>
 
         </div>
     </div>

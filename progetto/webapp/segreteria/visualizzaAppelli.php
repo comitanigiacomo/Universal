@@ -22,11 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crea_appello"])) {
     // Recupera i dati dal form
     $data = $_POST['data'];
     $luogo = $_POST['luogo'];
+    $codice_insegnamento = $_POST['codice_insegnamento'];
+    $responsabile = $_POST['responsabile'];
 
     // Chiamata alla procedura per creare un nuovo appello
     // Chiamata alla procedura per creare un nuovo appello
     $query_create_exam_session = "CALL universal.create_exam_session($1, $2, $3, $4)";
-    $result_create_exam_session = pg_query_params($conn, $query_create_exam_session, array($_SESSION['id'], $data, $luogo, $codice_insegnamento));
+    $result_create_exam_session = pg_query_params($conn, $query_create_exam_session, array($responsabile, $data, $luogo, $codice_insegnamento));
 
     if ($result_create_exam_session) {
         // Appello creato con successo
