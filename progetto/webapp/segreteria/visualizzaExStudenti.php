@@ -51,12 +51,12 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_all_exstudents['matricola'] . "</td>";
                             echo "<td>" . $row_get_all_exstudents['corso_di_laurea'] . "</td>";
                             echo "<td>
-                            <form method='post' action=''>
-                                <input type='hidden' name='codice_appello' value='' />
+                            <form method='post' action='visualizzaCarriera.php'>
+                                <input type='hidden' name='id_studente' value='" . $row_get_all_exstudents['id'] . "' />
                                 <button type='submit'>VisualizzaCarriera.php</button>
                             </form>
-                            <form method='post' action='./visualizzaCarrieraCompleta.php.php'>
-                                <input type='hidden' name='codice_appello' value='' />
+                            <form method='post' action='./visualizzaCarrieraCompleta.php'>
+                                <input type='hidden' name='id_studente' value='" . $row_get_all_exstudents['id'] . "' />
                                 <button type='submit'>Visualizza Carriera Completa</button>
                             </form>
                             </td>";
