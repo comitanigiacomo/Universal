@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
     // Recupera i dati dalla richiesta POST
     $id_studente = $_POST['id_studente'];
     $motivo = $_POST['motivo'];
-    
+
     // Esegui la chiamata alla procedura di disiscrizione dello studente
     $query_studentToExStudent = "CALL universal.studentToExStudent($1, $2)";
     $result_studentToExStudent = pg_query_params($conn, $query_studentToExStudent, array($id_studente, $motivo));
@@ -91,8 +91,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
                                     <option value='laureato'>Laureato</option>
                                     <option value='rinuncia'>Rinuncia</option>
                                 </select>
-                                <br>
                                 <button type='submit'>Disiscrivi</button>
+                            </form>
+                            <form method='post' action='./visualizzaAppelliACuiEIscritto.php'>
+                                <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
+                                <button type='submit'>Iscrivi Ad Un CdL</button>
                             </form>
                             </td>";
                             echo "</tr>";

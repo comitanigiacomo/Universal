@@ -62,6 +62,7 @@ $sede = $row_get_secretary['sede'];
             <button onclick="window.location.href='./visualizzaStudenti.php'">Visualizza Tutti Gli Studenti</button>
             <button onclick="window.location.href='./visualizzaExStudenti.php'">Visualizza Tutti Gli Ex Studenti</button>
             <button onclick="window.location.href='./visualizzaSegretari.php'">Visualizza Tutti I Segretari</button>
+            <button onclick="window.location.href='./inserisciUtente.php'">Inserisci Un Nuovo Utente</button>
         </div>
     </div>
     </div>
