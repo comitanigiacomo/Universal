@@ -7,6 +7,8 @@ if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +49,11 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_all_cdl['tipo'] . "</td>";
                             echo "<td>" . $row_get_all_cdl['descrizione'] . "</td>";
                             echo "<td>
-                                <button onclick=\"window.location.href='./visualizzaInsegnamenti.php?id=" . $row_get_all_cdl['codice'] . "'\">Visualizza Insegnamenti Del Corso</button>
+                            <form method='post' action='./visualizzaInsegnamenti.php'>
+                                <input type='hidden' name='codice_CdL' value='" . $row_get_all_cdl['codice']. "' />
+                                <input type='hidden' name='codice_CdL2' value='" . $row_get_all_cdl['codice']. "' />
+                                <button type='submit'>Visualizza Insegnamenti Del Corso</button>
+                            </form>
                                 </td>";
                             echo "</tr>";
                         }
@@ -56,6 +62,11 @@ if (!isset($_SESSION['email'])) {
                     }
                     ?>
                 </table>
+            </div>
+            <div class="crea-corso">
+                <form method="post" action="./creaCorsoDiLaurea.php">
+                    <button type="submit">Crea Nuovo Corso di Laurea</button>
+                </form>
             </div>
         </div>
     </div>

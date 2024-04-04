@@ -8,7 +8,7 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-$id_insegnamento = $_GET['id']; // Inizializza l'ID dell'insegnamento a null
+$id_insegnamento =$_POST['codice_CdL'];
 
 ?>
 
@@ -73,6 +73,13 @@ $id_insegnamento = $_GET['id']; // Inizializza l'ID dell'insegnamento a null
                     }
                     ?>
                 </table>
+            </div>
+
+            <div class="crea-corso">
+                <form method="post" action="./creaInsegnamento.php">
+                    <input type='hidden' name='cdl' value='<?php echo $_POST['codice_CdL2']; ?>' />
+                    <button type="submit">Crea Nuovo Insegnamento Del CdL</button>
+                </form>
             </div>
         </div>
     </div>
