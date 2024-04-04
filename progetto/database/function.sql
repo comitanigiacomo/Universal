@@ -37,32 +37,33 @@ CREATE OR REPLACE FUNCTION universal.login (
 
 -- RESTITUISCE TUTTI GLI STUDENTI
 --OK
-    CREATE OR REPLACE FUNCTION universal.get_all_students()
-        RETURNS TABLE (
-            id uuid,
-            nome VARCHAR(255),
-            cognome VARCHAR(255),
-            email VARCHAR(255),
-            matricola INTEGER,
-            corso_di_laurea INTEGER
-        )
-        LANGUAGE plpgsql
-        AS $$
-            BEGIN
-                RETURN QUERY
-                SELECT
-                    u.id,
-                    u.nome,
-                    u.cognome,
-                    u.email,
-                    s.matricola,
-                    s.corso_di_laurea
-                FROM universal.utenti AS u
-                    INNER JOIN universal.studenti AS s ON s.id = u.id
-                WHERE u.tipo = 'studente'
-                ORDER BY u.nome;
-            END ;
-        $$;
+CREATE OR REPLACE FUNCTION universal.get_all_students()
+    RETURNS TABLE (
+        id uuid,
+        nome VARCHAR(255),
+        cognome VARCHAR(255),
+        email VARCHAR(255),
+        matricola INTEGER,
+        corso_di_laurea TEXT
+    )
+AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.id,
+            u.nome,
+            u.cognome,
+            u.email,
+            s.matricola,
+            COALESCE(cdl.nome, 'Non iscritto') AS corso_di_laurea
+        FROM universal.utenti AS u
+            INNER JOIN universal.studenti AS s ON s.id = u.id
+            LEFT JOIN universal.corsi_di_laurea AS cdl ON s.corso_di_laurea = cdl.codice
+        WHERE u.tipo = 'studente'
+        ORDER BY u.nome;
+    END;
+$$ LANGUAGE plpgsql;
+
 
 -- GENERA IL NUMERO DI MATRICOLA
 -- OK
@@ -208,7 +209,7 @@ CREATE OR REPLACE FUNCTION universal.get_id(_email VARCHAR(255))
             cognome VARCHAR(255),
             email VARCHAR(255),
             matricola INTEGER,
-            corso_di_laurea INTEGER
+            corso_di_laurea TEXT
         )
         LANGUAGE plpgsql
         AS $$
@@ -219,9 +220,10 @@ CREATE OR REPLACE FUNCTION universal.get_id(_email VARCHAR(255))
                     u.cognome,
                     u.email,
                     ex.matricola,
-                    ex.corso_di_laurea
+                    cdl.nome
                 FROM universal.utenti AS u
                     INNER JOIN universal.ex_studenti AS ex ON _id = ex.id
+                    INNER JOIN universal.corsi_di_laurea AS cdl ON ex.corso_di_laurea = cdl.codice
                 WHERE u.id = _id;
             END ;
         $$;
@@ -387,29 +389,35 @@ $$;
 
 -- RESTITUISCE TUTTI GLI INSEGNAMENTI PER UN CORSO DI LAUREA
 -- OK
-  CREATE OR REPLACE FUNCTION universal.get_teaching_of_cdl(_codice INTEGER)
-        RETURNS TABLE (
-            codice INTEGER,
-            nome VARCHAR(40),
-            descrizione TEXT,
-            anno INTEGER,
-            responsabile uuid
-        )
-        LANGUAGE plpgsql
-        AS $$
-            BEGIN
-                RETURN QUERY
-                SELECT
-                    ins.codice,
-                    ins.nome,
-                    ins.descrizione,
-                    ins.anno,
-                    ins.docente_responsabile
-                FROM universal.insegnamenti as ins
-                WHERE ins.corso_di_laurea = _codice
-                ORDER BY ins.codice;
-            END ;
-        $$;
+ CREATE OR REPLACE FUNCTION universal.get_teaching_of_cdl(_codice INTEGER)
+    RETURNS TABLE (
+        codice INTEGER,
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        responsabile TEXT
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.codice,
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            CONCAT(u.nome, ' ', u.cognome) AS responsabile
+        FROM
+            universal.insegnamenti AS ins
+        INNER JOIN
+            universal.utenti AS u ON ins.docente_responsabile = u.id
+        WHERE
+            ins.corso_di_laurea = _codice
+        ORDER BY
+            ins.codice;
+    END;
+$$;
+
 
 -- RESTITUISCE TUTTI GLI APPELLI DI UN INSEGNAMENTO
 -- OK
@@ -418,7 +426,9 @@ CREATE OR REPLACE FUNCTION universal.get_exam_sessions(_codice INTEGER)
             data DATE,
             luogo VARCHAR(40),
             nome VARCHAR(40),
-            corso_di_laurea INTEGER
+            corso_di_laurea INTEGER,
+            codice_appello INTEGER,
+            id_docente uuid
         )
         LANGUAGE plpgsql
         AS $$
@@ -428,9 +438,13 @@ CREATE OR REPLACE FUNCTION universal.get_exam_sessions(_codice INTEGER)
                     a.data,
                     a.luogo,
                     i.nome,
-                    i.corso_di_laurea
+                    i.corso_di_laurea,
+                    a.codice,
+                    d.id
                 FROM universal.appelli AS a
                     INNER JOIN universal.insegnamenti AS i ON a.insegnamento = i.codice
+                    INNER JOIN universal.docenti AS d ON i.docente_responsabile = d.id
+
                 WHERE i.codice = _codice
                 ORDER BY data;
             END ;
@@ -489,12 +503,15 @@ CREATE OR REPLACE FUNCTION universal.get_student_exam_enrollments(_id uuid)
             END ;
         $$;
 -- RESTITUISCE TUTTE LE ISCRIZIONI AD UN  APPELLO D'ESAME
+-- FUNZIONALITÀ DOCENTE CHE USO PER INSERIRE ANCHE VALUTAZIONI, QUINDI  RITORNO SOLO QUELLI CON VALUTAZIONE PENDENTE
 CREATE OR REPLACE FUNCTION universal.get_exam_enrollments(_codice INTEGER)
         RETURNS TABLE (
             nome VARCHAR(40),
             cognome VARCHAR(40),
+            _id uuid,
             email VARCHAR(255),
-            matricola INTEGER
+            matricola INTEGER,
+            voto INTEGER
         )
         LANGUAGE plpgsql
         AS $$
@@ -503,13 +520,15 @@ CREATE OR REPLACE FUNCTION universal.get_exam_enrollments(_codice INTEGER)
                 SELECT
                     u.nome,
                     u.cognome,
+                    u.id,
                     u.email,
-                    s.matricola
+                    s.matricola,
+                    i.voto
                 FROM universal.iscritti AS i
                     INNER JOIN universal.appelli AS a ON i.appello = a.codice
                     INNER JOIN universal.studenti AS s ON i.studente = s.id
                     INNER JOIN universal.utenti AS u ON s.id = u.id
-                WHERE i.appello = _codice
+                WHERE i.appello = _codice AND i.voto IS NULL
                 ORDER BY matricola;
             END ;
         $$;
@@ -639,8 +658,8 @@ CREATE OR REPLACE FUNCTION universal.get_teaching_activity_of_professor(_id uuid
         nome VARCHAR(40),
         descrizione TEXT,
         anno INTEGER,
-        docente_responsabile uuid,
-        corso_di_laurea INTEGER
+        corso_di_laurea INTEGER,
+        nome_cdl TEXT
     )
     LANGUAGE plpgsql
     AS $$
@@ -651,12 +670,11 @@ CREATE OR REPLACE FUNCTION universal.get_teaching_activity_of_professor(_id uuid
             ins.nome,
             ins.descrizione,
             ins.anno,
-            ins.docente_responsabile,
-            cdl.codice
+            cdl.codice,
+            cdl.nome
         FROM universal.insegnamenti AS ins
             INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
-            INNER JOIN universal.docenti AS d ON ins.docente_responsabile = d.id
-        WHERE _id = d.id
+        WHERE _id = ins.docente_responsabile
         ORDER BY ins.codice;
     END;
 $$;
@@ -721,10 +739,11 @@ CREATE OR REPLACE FUNCTION universal.get_teacher_grades(_id uuid)
             universal.iscritti AS i
             INNER JOIN universal.utenti AS u ON i.studente = u.id
             INNER JOIN universal.insegnamenti AS ins ON i.insegnamento = ins.codice
-            INNER JOIN universal.studenti AS s ON u.id = s.id
-            INNER JOIN universal.appelli AS a ON ins.codice = a.insegnamento
+            INNER JOIN universal.studenti AS s ON i.studente = s.id
+            INNER JOIN universal.appelli AS a ON i.appello = a.codice
         WHERE
-            ins.docente_responsabile = _id  -- Filtra solo gli insegnamenti di cui il docente è responsabile
+            i.voto IS NOT NULL AND  ins.docente_responsabile = _id -- Filtra solo gli insegnamenti di cui il docente è responsabile
+            AND ins.docente_responsabile = _id -- Aggiungi questa condizione per filtrare solo gli insegnamenti del docente attualmente loggato
         ORDER BY matricola;
     END;
 $$;
@@ -861,7 +880,7 @@ CREATE OR REPLACE FUNCTION universal.get_all_cdl()
     RETURNS TABLE (
         codice INTEGER,
         nome TEXT,
-        tipo INTEGER,
+        tipo TEXT,
         descrizione TEXT
     )
     LANGUAGE plpgsql
@@ -871,12 +890,18 @@ CREATE OR REPLACE FUNCTION universal.get_all_cdl()
         SELECT
             cdl.codice,
             cdl.nome,
-            cdl.tipo,
+            CASE cdl.tipo
+                WHEN 2 THEN 'magistrale'
+                WHEN 3 THEN 'triennale'
+                WHEN 5 THEN 'ciclo unico'
+                ELSE 'Altro'
+            END AS tipo,
             cdl.descrizione
         FROM universal.corsi_di_laurea AS cdl
         ORDER BY nome;
     END;
 $$;
+
 
 -- RESTITUISCE LA CARRIERA DI UNO STUDENTE ( TUTTI GLI ESAMI FATTI NON DUPLICATI)
 CREATE OR REPLACE FUNCTION universal.get_partial_carrer(_id uuid)

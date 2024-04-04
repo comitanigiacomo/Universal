@@ -1,52 +1,49 @@
 -- PROCEDURE
 
 -- TRASFORMA UNO STUDENTE IN UN EX_STUDENTE
-CREATE OR REPLACE PROCEDURE studentToExStudent (
+CREATE OR REPLACE PROCEDURE universal.studentToExStudent (
     _id uuid,
     _motivo TipoMotivo
 )
-  LANGUAGE plpgsql
-  AS $$
-    DECLARE
-        matricola_ex_studente INTEGER;
-        cdl INTEGER;
-    BEGIN
-        SELECT matricola INTO matricola_ex_studente
-        FROM universal.studenti
-        WHERE id = _id;
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    matricola_ex_studente INTEGER;
+    cdl INTEGER;
+    new_email TEXT;
+    old_email TEXT;
+BEGIN
+    SELECT matricola INTO matricola_ex_studente
+    FROM universal.studenti
+    WHERE id = _id;
 
-        SELECT corso_di_laurea INTO cdl
-        FROM universal.studenti
-        WHERE id = _id;
+    SELECT corso_di_laurea INTO cdl
+    FROM universal.studenti
+    WHERE id = _id;
 
-        -- Aggiorna il tipo dell'utente a 'ex_studente'
-        UPDATE universal.utenti
-        SET tipo = 'ex_studente'
-        WHERE universal.utenti.id = _id;
+    SELECT email into old_email
+    FROM universal.utenti AS u
+    WHERE u.id = _id;
 
-        -- Inserisce i dati dell'ex studente nella tabella degli ex studenti
-        INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
-        VALUES (_id, _motivo, matricola_ex_studente, cdl);
+    -- Costruisci il nuovo indirizzo email dell'ex studente
+    new_email := REPLACE(old_email, '@studenti.', '@exstudenti.');
 
-        -- Sposta le valutazioni dello studente dalla tabella iscritti a storico_valutazioni
-        INSERT INTO universal.storico_valutazioni (id, nome, cognome, matricola, insegnamento, voto,data, corso_di_laurea)
-        SELECT u.id, u.nome, u.cognome, s.matricola, i.appello, i.voto,a.data, s.corso_di_laurea
-        FROM universal.utenti u
-        JOIN universal.studenti s ON u.id = s.id
-        JOIN universal.iscritti i ON u.id = i.studente
-        INNER JOIN universal.appelli AS a ON i.appello = a.codice
-        WHERE u.id = _id;
+    -- Aggiorna il tipo dell'utente a 'ex_studente' e modifica l'email
+    UPDATE universal.utenti
+    SET tipo = 'ex_studente', email = new_email
+    WHERE id = _id;
 
-        -- Rimuove lo studente dalla tabella studenti
-        DELETE FROM universal.studenti
-        WHERE id = _id;
+    -- Inserisce i dati dell'ex studente nella tabella degli ex studenti
+    INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
+    VALUES (_id, _motivo, matricola_ex_studente, cdl);
 
-        -- Rimuove le valutazioni dello studente dalla tabella iscritti
-        DELETE FROM universal.iscritti
-        WHERE studente = _id;
+    -- Rimuove lo studente dalla tabella studenti
+    DELETE FROM universal.studenti
+    WHERE id = _id;
 
-    END;
-  $$;
+END;
+$$;
+
 
 
 -- INSERISCE UN NUOVO UTENTE
@@ -164,18 +161,25 @@ AS $$
 BEGIN
     DECLARE
         codice_insegnamento INTEGER;
+        data_appello DATE;
     BEGIN
         -- Ottieni l'insegnamento relativo all'appello specificato
-        SELECT a.insegnamento INTO codice_insegnamento
+        SELECT a.insegnamento, a.data INTO codice_insegnamento, data_appello
         FROM universal.appelli AS a
         WHERE a.codice = _appello;
 
+        -- Controlla se la data dell'appello è diversa dalla data odierna
+        IF data_appello = CURRENT_DATE THEN
+            RAISE EXCEPTION 'Non è possibile iscriversi all''appello di oggi.';
+        END IF;
+
         -- Inserisci l'iscrizione dello studente all'appello d'esame
-        INSERT INTO universal.iscritti (appello, studente,insegnamento, voto)
+        INSERT INTO universal.iscritti (appello, studente, insegnamento, voto)
         VALUES (_appello, _id, codice_insegnamento, NULL);
     END;
 END;
 $$;
+
 
 
 -- DOCENTE METTE VALUTAZIONE
@@ -414,6 +418,8 @@ BEGIN
         ELSE
             RAISE EXCEPTION 'Tipo utente non valido';
     END CASE;
+
+
 END;
 $$;
 
@@ -431,13 +437,64 @@ BEGIN
     IF EXISTS (SELECT 1 FROM universal.insegnamenti AS ins WHERE ins.codice = codice_insegnamento AND ins.docente_responsabile = _id_nuovo_docente ) THEN
         RAISE EXCEPTION 'Sei già il responsabile di questo corso';
     end if;
-    -- Ottieni il tipo dell'utente
     UPDATE universal.insegnamenti AS ins
     SET docente_responsabile = _id_nuovo_docente
     WHERE ins.codice = codice_insegnamento;
 END;
 $$;
 
+-- Modifica la sede di un segretario
+CREATE OR REPLACE PROCEDURE universal.change_secretary_office
+(
+    _id uuid,
+    _nuova_sede VARCHAR(40)
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+
+    UPDATE universal.segretari AS s
+    SET sede = _nuova_sede
+    WHERE s.id = _id;
+END;
+$$;
+-- ELIMINA UN SEGRETARIO DATO IL SUO ID
+CREATE OR REPLACE PROCEDURE universal.delete_secretary
+(
+    _id uuid
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+
+    DELETE FROM universal.segretari AS s
+    WHERE s.id = _id;
+END;
+$$;
+
+
+--ELIMINA UN DOCENTE DATO IL SUO ID
+--DATO CHE OGNI CORSO DEVE AVERE UN RESPONSABIOE, NON ELIMINA UN DOCENTE SE QUESTO È RESPONSABILE DI UN CORSO
+CREATE OR REPLACE PROCEDURE universal.delete_teacher
+(
+    _id uuid
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+BEGIN
+
+    IF EXISTS (SELECT 1 FROM universal.insegnamenti AS ins WHERE ins.docente_responsabile = _id ) THEN
+        RAISE EXCEPTION 'Il docente è responsabile di un corso';
+    end if;
+
+    DELETE FROM universal.docenti AS d
+    WHERE d.id = _id;
+
+END;
+$$;
 -- SEGRETARIO MODIFICA STUDENTE
 
 -- SEGRETARIO MODIFICA DOCENTE

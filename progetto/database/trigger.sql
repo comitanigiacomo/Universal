@@ -9,8 +9,8 @@ DECLARE
 BEGIN
     IF NEW.tipo = 'studente' THEN
         new_matricola := genera_matricola();
-        INSERT INTO universal.studenti (id, matricola)
-        VALUES (NEW.id, new_matricola);
+        INSERT INTO universal.studenti (id, matricola, corso_di_laurea)
+        VALUES (NEW.id, new_matricola,NULL);
     ELSIF NEW.tipo = 'docente' THEN
         INSERT INTO universal.docenti (id, ufficio)
         VALUES (NEW.id, 'edificio 74');

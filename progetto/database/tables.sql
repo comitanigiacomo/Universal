@@ -69,15 +69,6 @@ CREATE TABLE universal.iscritti (
     PRIMARY KEY (appello, studente)
 );
 
-CREATE TABLE universal.ex_iscritti (
-    appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
-    studente uuid NOT NULL REFERENCES universal.utenti(id),
-    insegnamento INTEGER,
-    voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
-    PRIMARY KEY (appello, studente)
-);
-
-
 
 CREATE TABLE universal.propedeutico (
     insegnamento INTEGER NOT NULL REFERENCES universal.insegnamenti(codice),
