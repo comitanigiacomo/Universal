@@ -55,6 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
                             <th>Descrizione</th>
                             <th>Anno</th>
                             <th>Docente responsabile</th>
+                            <th>Corsi Propedeutici</th>
                             <th>Azioni</th>
                         </tr>
                         <tr>
@@ -75,6 +76,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
                                     if ($result_get_all_teachers && pg_num_rows($result_get_all_teachers) > 0) {
                                         while ($row_get_all_teachers = pg_fetch_assoc($result_get_all_teachers)) {
                                             echo "<option value='" . $row_get_all_teachers['id'] . "'>" . $row_get_all_teachers['nome'] . " " . $row_get_all_teachers['cognome'] . "</option>";
+                                        }
+                                    }
+                                    ?>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="propedeutici" required>
+                                    <?php
+                                    $query_get_teaching_of_cdl = "SELECT * FROM universal.get_teaching_of_cdl($1)";
+                                    $result_get_teaching_of_cdl = pg_query_params($conn, $query_get_teaching_of_cdl, array($_POST['cdl']));
+                                    if ($result_get_teaching_of_cdl && pg_num_rows($result_get_teaching_of_cdl) > 0) {
+                                        while ($row_get_teaching_of_cdl = pg_fetch_assoc($result_get_teaching_of_cdl)) {
+                                            echo "<option value='" . $row_get_teaching_of_cdl['codice'] . "'>" . $row_get_teaching_of_cdl['nome'] . " " . $row_get_teaching_of_cdl['descrizione'] . "</option>";
                                         }
                                     }
                                     ?>
