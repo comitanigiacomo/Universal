@@ -7,6 +7,42 @@ if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
 }
+
+if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
+    // Recupera i dati dalla richiesta POST
+    $id_segretario = $_POST['id_segretario'];
+    $nuova_sede = $_POST['nuova_sede'];
+
+    
+    // Esegui la chiamata alla procedura di inserimento della valutazione
+    $query_change_secretary_office = "CALL universal.change_secretary_office($1, $2)";
+    $result_change_secretary_office = pg_query_params($conn, $query_change_secretary_office, array($id_segretario, $nuova_sede));
+
+    // Verifica se la procedura è stata eseguita con successo
+    if ($result_change_secretary_office) {
+        echo '<script type="text/javascript">alert("Sede cambiata correttamente"); </script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore durante Il cambio sede")</script>';
+    }
+
+} else if (isset($_POST["id_segretario2"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
+    // Recupera i dati dalla richiesta POST
+    $id_segretario2 = $_POST['id_segretario2'];
+    print_r($_id_segretario2);
+
+    
+    // Esegui la chiamata alla procedura di inserimento della valutazione
+    $query_delete_secretary = "CALL universal.delete_secretary($1)";
+    $result_delete_secretary = pg_query_params($conn, $query_delete_secretary, array($id_segretario2));
+
+    // Verifica se la procedura è stata eseguita con successo
+    if ($result_delete_secretary) {
+        echo '<script type="text/javascript">alert("Segretario eliminato correttamente"); </script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore durante l\'eliminazione")</script>';
+    }
+
+}
 ?>
 
 <!DOCTYPE html>
@@ -32,6 +68,7 @@ if (!isset($_SESSION['email'])) {
                         <th>Cognome</th>
                         <th>Email</th>
                         <th>Sede</th>
+                        <th>Azioni</th>
                     </tr>
                     <?php
                     // Esegui la query per ottenere gli appelli degli esami
@@ -47,6 +84,21 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>" . $row_get_secretaries['cognome'] . "</td>";
                             echo "<td>" . $row_get_secretaries['email'] . "</td>";
                             echo "<td>" . $row_get_secretaries['sede'] . "</td>";
+                            echo "<td>
+                                <form method='post' action=''>
+                                    <input type='hidden' name='id_segretario' value='" . $row_get_secretaries['id']   . "' />
+                                    <input type='text' name='nuova_sede' placeholder='Inserisci la nuova sede' required />
+                                    <button type='submit'>Cambia Sede</button>
+                                </form>
+                                <form method='post' action=''>
+                                    <input type='hidden' name='id_segretario2' value='" . $row_get_secretaries['id']   . "' />
+                                    <button type='submit'>Elimina Segretario</button>
+                                </form>
+                                <form method='post' action='modificaPasswordUtente.php'>
+                                <input type='hidden' name='id_utente' value='" . $row_get_secretaries['id']   . "' />
+                                <button type='submit'>Modifica Password</button>
+                            </form>
+                            </td>";
                             echo "</tr>";
                         }
                     } else {

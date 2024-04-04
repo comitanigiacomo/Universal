@@ -73,29 +73,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
                             echo "<td>" . $row_get_all_students['matricola'] . "</td>";
                             echo "<td>" . $row_get_all_students['corso_di_laurea'] . "</td>";
                             echo "<td>
-                            <form method='post' action='./visualizzaCarriera.php'>
+                            <form method='post' action='./gestisciStudente.php'>
                                 <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
-                                <button type='submit'>Visualizza Carriera</button>
-                            </form>
-                            <form method='post' action='./visualizzaCarrieraCompleta.php'>
-                                <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
-                                <button type='submit'>Visualizza Carriera Completa</button>
-                            </form>
-                            <form method='post' action='./visualizzaAppelliACuiEIscritto.php'>
-                                <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
-                                <button type='submit'>Visualizza Appelli a cui è iscritto</button>
-                            </form>
-                            <form method='post' action=''>
-                                <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
-                                <select name='motivo'>
-                                    <option value='laureato'>Laureato</option>
-                                    <option value='rinuncia'>Rinuncia</option>
-                                </select>
-                                <button type='submit'>Disiscrivi</button>
-                            </form>
-                            <form method='post' action='./visualizzaAppelliACuiEIscritto.php'>
-                                <input type='hidden' name='id_studente' value='" . $row_get_all_students['id'] . "' />
-                                <button type='submit'>Iscrivi Ad Un CdL</button>
+                                <input type='hidden' name='nome' value='" . $row_get_all_students['nome']  . "' />
+                                <input type='hidden' name='cognome' value='" . $row_get_all_students['cognome']  . "' />
+                                <input type='hidden' name='email' value='" . $row_get_all_students['email'] . "' />
+                                <input type='hidden' name='matricola' value='" . $row_get_all_students['matricola'] . "' />
+                                <input type='hidden' name='corso_di_laurea' value='" .  $row_get_all_students['corso_di_laurea']  . "' />
+                                <button type='submit'>Gestisci Studente</button>
                             </form>
                             </td>";
                             echo "</tr>";

@@ -59,6 +59,10 @@ if (!isset($_SESSION['email'])) {
                                 <input type='hidden' name='id_studente' value='" . $row_get_all_exstudents['id'] . "' />
                                 <button type='submit'>Visualizza Carriera Completa</button>
                             </form>
+                            <form method='post' action='./modificaPasswordUtente.php'>
+                                <input type='hidden' name='id_utente' value='" . $row_get_all_exstudents['id'] . "' />
+                                <button type='submit'>Modifica Password</button>
+                            </form>
                             </td>";
                             echo "</tr>";
                         }

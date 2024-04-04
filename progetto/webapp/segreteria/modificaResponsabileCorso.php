@@ -8,20 +8,23 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente2"])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente"])) {
     // Recupera i dati dalla richiesta POST
-    $id_docente2 = $_POST['id_docente2'];
+    $id_docente = $_POST['id_docente'];
+    $codice_insegnamento = $_POST['codice_insegnamento'];
+    print_r($codice_insegnamento);
+    
+    // Esegui la chiamata alla procedura di inserimento della valutazione
+    $query_change_course_responsible_teacher = "CALL universal.change_course_responsible_teacher($1, $2)";
+    $result_change_course_responsible_teacher = pg_query_params($conn, $query_change_course_responsible_teacher, array($id_docente, $codice_insegnamento));
 
-        // Esegui la chiamata alla procedura per eliminare il docente
-        $query_delete_teacher = "CALL universal.delete_teacher($1)";
-        $result_delete_teacher = pg_query_params($conn, $query_delete_teacher, array($id_docente2));
+    // Verifica se la procedura è stata eseguita con successo
+    if ($result_change_course_responsible_teacher) {
+        echo '<script type="text/javascript">alert("Responsabile cambiato correttamente"); </script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore nel cambio del responsabile); </script>';
+    }
 
-        // Verifica se la procedura è stata eseguita con successo
-        if ($result_delete_teacher) {
-            echo '<script type="text/javascript">alert("Docente eliminato correttamente"); </script>';
-        } else {
-            echo '<script type="text/javascript">alert("Il docente è responsabile di almeno un insegnamento");</script>';
-        }
 }
 
 ?>
@@ -66,21 +69,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente2"])) {
                             echo "<td>" . $row_get_all_teachers['email'] . "</td>";
                             echo "<td>" . $row_get_all_teachers['ufficio'] . "</td>";
                             echo "<td>
-                            <form method='post' action='./visualizzaInsegnamentiDelDocente.php'>
-                                <input type='hidden' name='id_docente' value='" . $row_get_all_teachers['id'] . "' />
-                                <button type='submit'>Visualizza Corsi Di Cui È Responsabile</button>
-                            </form>
-                            <form method='post' action='./visualizzaValutazioniDate.php'>
-                                <input type='hidden' name='id_docente' value='" . $row_get_all_teachers['id'] . "' />
-                                <button type='submit'>Visualizza Valutazioni Assegnate</button>
-                            </form>
                             <form method='post' action=''>
-                                <input type='hidden' name='id_docente2' value='" . $row_get_all_teachers['id'] . "' />
-                                <button type='submit'>Elimina Docente</button>
-                            </form>
-                            <form method='post' action='modificaPasswordUtente.php'>
-                                <input type='hidden' name='id_utente' value='" . $row_get_all_teachers['id'] . "' />
-                                <button type='submit'>Modifica Password</button>
+                                <input type='hidden' name='id_docente' value='" . $row_get_all_teachers['id'] . "' />
+                                <input type='hidden' name='codice_insegnamento' value='" . $_POST['codice_insegnamento'] . "' />
+                                <button type='submit'>Assegna Come Nuovo Responsabile</button>
                             </form>
                             </td>";
                             echo "</tr>";

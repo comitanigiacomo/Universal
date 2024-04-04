@@ -10,24 +10,6 @@ if (!isset($_SESSION['email'])) {
 
 $id_insegnamento = $_GET['id']; // Inizializza l'ID dell'insegnamento a null
 
-// Verifica se è stato inviato il modulo per cambiare il responsabile del corso
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_nuovo_docente'])) {
-    $id_insegnamento = $_POST['codice']; // Recupera l'ID dell'insegnamento dalla richiesta POST
-    $id_nuovo_docente = $_POST['id_nuovo_docente']; // Recupera l'ID del nuovo docente responsabile dalla richiesta POST
-
-    // Chiamata alla procedura change_course_responsible_teacher
-    $query_change_responsible_teacher = "CALL universal.change_course_responsible_teacher('$id_nuovo_docente', $id_insegnamento)";
-    $result_change_responsible_teacher = pg_query($conn, $query_change_responsible_teacher);
-
-    // Verifica se la procedura è stata eseguita correttamente
-    if ($result_change_responsible_teacher) {
-        echo "Responsabile del corso cambiato con successo.";
-        // Puoi reindirizzare l'utente o eseguire altre azioni qui
-    } else {
-        echo "Errore durante il cambio del responsabile del corso.";
-        // Puoi gestire l'errore in base alle tue esigenze
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -76,9 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_nuovo_docente'])) {
                                     <input type='hidden' name='responsabile' value='" .$row_get_teaching_of_cdl['responsabile'] . "' />
                                     <button type='submit'>Visualizza Appelli</button>
                                 </form>
-                                <form method='post' action=''>
-                                    <input type='hidden' name='codice' value='" . $row_get_teaching_of_cdl['codice'] . "' />
-                                    <input type='text' name='id_nuovo_docente' placeholder='Inserisci ID del nuovo docente' />
+                                <form method='post' action='./modificaResponsabileCorso.php'>
+                                    <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_of_cdl['codice'] . "' />
                                     <button type='submit'>Modifica Responsabile Del Corso</button>
                                 </form>
                                 </td>";
