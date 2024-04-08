@@ -88,6 +88,7 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
                             echo "<td>
                                 <form method='post' action='./visualizzaIscritti.php'>
                                     <input type='hidden' name='codice_appello' value='" . $row_get_exam_sessions['codice_appello'] . "' />
+                                    <input type='hidden' name='codice_cdl' value='" . $row_get_exam_sessions['corso_di_laurea'] . "' />
                                     <input type='hidden' name='id_docente' value='" . $row_get_exam_sessions['id_docente'] . "' />
                                     <button type='submit'>Visualizza Iscritti</button>
                                 </form>

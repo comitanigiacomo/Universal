@@ -88,6 +88,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
                     }
                     ?>
                 </table>
+
+                <div class="aggiungi-iscrizione">
+                    <form method="post" action="./iscriviStudente.php">
+                        <input type='hidden' name='codice_appello' value='<?php echo $codice_appello; ?>' />
+                        <input type='hidden' name='codice_cdl' value='<?php echo $_POST['codice_cdl']; ?>' />
+                        <button type="submit">Iscrivi Studente All'appello</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

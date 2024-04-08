@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
     if ($result_subsribe_to_cdl) {
         echo '<script type="text/javascript">alert("Studente iscritto correttamente"); window.location = "./index.php";</script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore nella iscrizione dello studente); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Errore nella iscrizione dello studente"); window.location = "./index.php";</script>';
     }
 
 }

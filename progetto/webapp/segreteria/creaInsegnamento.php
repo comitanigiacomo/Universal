@@ -57,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
                             <th>Descrizione</th>
                             <th>Anno</th>
                             <th>Docente responsabile</th>
-                            <th>Propedeuticità</th>
                             <th>Azioni</th>
                         </tr>
                         <tr>
