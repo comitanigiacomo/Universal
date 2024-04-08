@@ -938,6 +938,115 @@ CREATE OR REPLACE FUNCTION universal.get_partial_carrer(_id uuid)
             i.appello DESC;
     END;
 $$;
+-- RESTITUISCE LE PROPEDEUTICITÀ DI UN CORSO
+CREATE OR REPLACE FUNCTION universal.get_propaedeutics(codice_ins INTEGER)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        docente_responsabile TEXT,
+        propedeuticità INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            CONCAT(u.nome,' ',u.cognome) AS responsabile,
+            p.propedeuticità AS propedeuticità
+        FROM
+            universal.propedeutico AS p
+        INNER JOIN universal.insegnamenti AS ins ON p.insegnamento = ins.codice
+        INNER JOIN universal.utenti AS u ON ins.docente_responsabile = u.id
+        WHERE
+            p.insegnamento = codice_ins;
+    END;
+$$;
+
+    CREATE OR REPLACE FUNCTION universal.get_single_teaching(_codice INTEGER)
+        RETURNS TABLE (
+            codice INTEGER,
+            nome VARCHAR(40),
+            descrizione TEXT,
+            anno INTEGER,
+            responsabile uuid,
+            corso_di_laurea INTEGER
+        )
+        LANGUAGE plpgsql
+        AS $$
+            BEGIN
+                RETURN QUERY
+                SELECT
+                   i.codice,
+                   i.nome,
+                   i.descrizione,
+                   i.anno,
+                   i.docente_responsabile,
+                   i.corso_di_laurea
+                FROM universal.insegnamenti AS i
+                WHERE i.codice = _codice
+                ORDER BY codice;
+            END ;
+        $$;
+CREATE OR REPLACE FUNCTION universal.get_propaedeutics(codice_ins INTEGER)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        docente_responsabile TEXT
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            CONCAT(u.nome,' ',u.cognome) AS responsabile
+        FROM
+            universal.propedeutico AS p
+        INNER JOIN universal.insegnamenti AS ins ON p.propedeuticità = ins.codice
+        INNER JOIN universal.utenti AS u ON ins.docente_responsabile = u.id
+        WHERE
+            p.insegnamento = codice_ins;
+    END;
+$$;
+
+ CREATE OR REPLACE FUNCTION universal.get_teaching_of_cdl_for_propaedeutics(
+        codice_cdl INTEGER,
+        codice_ins INTEGER
+        )
+    RETURNS TABLE (
+        codice INTEGER,
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        responsabile TEXT
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.codice,
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            CONCAT(u.nome, ' ', u.cognome) AS responsabile
+        FROM
+            universal.insegnamenti AS ins
+        INNER JOIN
+            universal.utenti AS u ON ins.docente_responsabile = u.id
+        WHERE
+            ins.corso_di_laurea = codice_cdl AND ins.codice != codice_ins
+        ORDER BY
+            ins.codice;
+    END;
+$$;
 
 
 
