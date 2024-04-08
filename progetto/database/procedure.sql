@@ -495,24 +495,31 @@ BEGIN
 
 END;
 $$;
--- SEGRETARIO MODIFICA STUDENTE
-
--- SEGRETARIO MODIFICA DOCENTE
-
--- SEGRETARIO MODIFICA CALENDARIO APPELLI
 
 
--- SEGRETARIO MODIFICA SEGRETARIO
+CREATE OR REPLACE PROCEDURE universal.insert_propaedeutics
+(
+    codice_ins INTEGER,
+    codice_prop INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Controlla se l'insegnamento e la propedeuticità esistono
+    IF EXISTS (SELECT 1 FROM universal.insegnamenti WHERE codice = codice_ins) AND
+       EXISTS (SELECT 1 FROM universal.insegnamenti WHERE codice = codice_prop) THEN
 
--- SEGRETARIO MODIFICA CORSO DI LAUREA
+        -- Controlla se la propedeuticità è già presente nella tabella propedeutico
+        IF NOT EXISTS (SELECT 1 FROM universal.propedeutico WHERE insegnamento = codice_ins AND propedeuticità = codice_prop) THEN
+            -- Inserisce le propedeuticità nella tabella propedeutico
+            INSERT INTO universal.propedeutico (insegnamento, propedeuticità)
+            VALUES (codice_ins, codice_prop);
+        ELSE
+            RAISE NOTICE 'La propedeuticità specificata è già presente per questo insegnamento.';
+        END IF;
 
--- SEGRETARIO ELIMINA CORSO DI LAUREA
-
-
--- SEGRETARIO MODIFICA NUOVO INSEGNAMENTO
-
--- SEGRETARIO ELIMINA INSEGNAMENTO
-
--- SEGRETARIO MODIFICA APPELLO
-
--- SEGRETARIO ELIMINA APPELLO
+    ELSE
+        RAISE EXCEPTION 'L''insegnamento o la propedeuticità specificati non esistono.';
+    END IF;
+END;
+$$;
