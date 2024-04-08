@@ -14,6 +14,25 @@ $email = $_POST['email'];
 $matricola = $_POST['matricola'];
 $corso_di_laurea = $_POST['corso_di_laurea'];
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente_per_disiscrizione"])) {
+    // Recupera i dati dalla richiesta POST
+    $id_studente = $_POST['id_studente_per_disiscrizione'];
+    $motivo = $_POST['motivo'];
+    print_r($motivo);
+    
+    // Esegui la chiamata alla procedura di inserimento della valutazione
+    $query_studentToExStudent = "CALL universal.studentToExStudent($1, $2)";
+    $result_studentToExStudent = pg_query_params($conn, $query_studentToExStudent, array($id_studente, $motivo));
+
+    // Verifica se la procedura è stata eseguita con successo
+    if ($result_studentToExStudent) {
+        echo '<script type="text/javascript">alert("Studente Disiscritto Correttamente"); </script>';
+    } else {
+        echo '<script type="text/javascript">alert("Errore nella disiscrizione dello studente); </script>';
+    }
+
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -68,7 +87,7 @@ $corso_di_laurea = $_POST['corso_di_laurea'];
                     <button type='submit'>Visualizza Appelli a cui è iscritto</button>
                 </form>
                 <form method='post' action=''>
-                    <input type='hidden' name='id_studente' value='<?php echo $_POST['id_studente']; ?>' />
+                    <input type='hidden' name='id_studente_per_disiscrizione' value='<?php echo $_POST['id_studente']; ?>' />
                     <select name='motivo'>
                         <option value='laureato'>Laureato</option>
                         <option value='rinuncia'>Rinuncia</option>

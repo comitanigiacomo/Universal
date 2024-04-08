@@ -62,6 +62,11 @@ $id_insegnamento =$_POST['codice_CdL'];
                                     <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_of_cdl['codice'] . "' />
                                     <button type='submit'>Modifica Responsabile Del Corso</button>
                                 </form>
+                                <form method='post' action='./visualizzaPropedeuticità.php'>
+                                    <input type='hidden' name='codice' value='" . $row_get_teaching_of_cdl['codice'] . "' />
+                                    <input type='hidden' name='codice_cdl' value='" . $_POST['codice_CdL'] . "' />
+                                    <button type='submit'>Visualizza Propedeuticità</button>
+                                </form>
                                 </td>";
                                 echo "</tr>";
                             }
