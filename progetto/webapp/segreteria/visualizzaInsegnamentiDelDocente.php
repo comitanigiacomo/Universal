@@ -55,7 +55,7 @@ if (!isset($_SESSION['email'])) {
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='4'>Nessun insegnamento disponibile per questo corso.</td></tr>";
+                            echo "<tr><td colspan='4'>Il docente non è responsabile di nessun corso</td></tr>";
                         }
                     
                     ?>

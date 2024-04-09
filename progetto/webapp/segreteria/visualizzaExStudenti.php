@@ -12,7 +12,7 @@ if (!isset($_SESSION['email'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Studenti di Universal</title>
+    <title>Ex Studenti di Universal</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -27,7 +27,7 @@ if (!isset($_SESSION['email'])) {
             <div class="home">
                     <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
             </div>
-            <div class="titolo"><h1>Studenti di Universal</h1></div>
+            <div class="titolo"><h1>Ex Studenti di Universal</h1></div>
             <div class="tabella">
                 <table>
                     <tr>
