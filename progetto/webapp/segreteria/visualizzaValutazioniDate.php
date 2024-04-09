@@ -41,9 +41,7 @@ if (!isset($_SESSION['email'])) {
                     $query_get_teacher_grades = "SELECT * FROM universal.get_teacher_grades($1)";
                     $result_get_teacher_grades = pg_query_params($conn, $query_get_teacher_grades, array($_POST['id_docente']));
 
-                    // Verifica se ci sono risultati
                     if ($result_get_teacher_grades && pg_num_rows($result_get_teacher_grades) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
                         while ($row_get_teacher_grades = pg_fetch_assoc($result_get_teacher_grades)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_teacher_grades['nome'] . "</td>";

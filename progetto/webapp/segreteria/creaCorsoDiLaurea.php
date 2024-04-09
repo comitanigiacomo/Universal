@@ -9,7 +9,7 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
-    // Ottieni le password inserite nel form
+ 
     $nome = $_POST['nome'];
     $tipo = $_POST['tipo'];
     $descrizione = $_POST['descrizione'];

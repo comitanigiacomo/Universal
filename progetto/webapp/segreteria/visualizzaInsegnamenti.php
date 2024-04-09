@@ -38,14 +38,11 @@ $id_cdl =$_POST['codice_CdL'];
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli insegnamenti del corso specificato
                     if($id_cdl !== null) {
                         $query_get_teaching_of_cdl = "SELECT * FROM universal.get_teaching_of_cdl($1)";
                         $result_get_teaching_of_cdl = pg_query_params($conn, $query_get_teaching_of_cdl, array($id_cdl));
 
-                        // Verifica se ci sono risultati
                         if ($result_get_teaching_of_cdl && pg_num_rows($result_get_teaching_of_cdl) > 0) {
-                            // Itera sui risultati e stampa le righe della tabella
                             while ($row_get_teaching_of_cdl = pg_fetch_assoc($result_get_teaching_of_cdl)) {
                                 echo "<tr>";
                                 echo "<td>" . $row_get_teaching_of_cdl['nome'] . "</td>";
@@ -74,7 +71,7 @@ $id_cdl =$_POST['codice_CdL'];
                             echo "<tr><td colspan='5'>Nessun insegnamento disponibile per questo corso.</td></tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='5'>ID insegnamento non valido.</td></tr>";
+                        echo "<tr><td colspan='5'>ID CdL non valido.</td></tr>";
                     }
                     ?>
                 </table>

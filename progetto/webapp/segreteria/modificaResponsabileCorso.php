@@ -9,16 +9,14 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente"])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_docente = $_POST['id_docente'];
     $codice_insegnamento = $_POST['codice_insegnamento'];
     print_r($codice_insegnamento);
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_change_course_responsible_teacher = "CALL universal.change_course_responsible_teacher($1, $2)";
     $result_change_course_responsible_teacher = pg_query_params($conn, $query_change_course_responsible_teacher, array($id_docente, $codice_insegnamento));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_change_course_responsible_teacher) {
         echo '<script type="text/javascript">alert("Responsabile cambiato correttamente"); </script>';
     } else {

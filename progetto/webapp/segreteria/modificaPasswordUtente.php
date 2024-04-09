@@ -10,7 +10,7 @@ if (!isset($_SESSION['email'])) {
 
 // Controlla se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
-    // Ottieni le password inserite nel form
+
     $vecchia_password = $_POST['old_password'];
     $nuova_password = $_POST['new_password'];
     $id_utente = $_POST['id_utente'];
@@ -19,7 +19,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
     $query_change_password = "CALL universal.change_password($1, $2, $3)";
     $result_change_password = pg_query_params($conn, $query_change_password, array($id_utente, $vecchia_password, $nuova_password));
 
-    // Controllo del risultato della query
     if (!$result_change_password) {
         echo '<script type="text/javascript">alert("Error: Errore durante il cambio password");</script>';
         exit;
@@ -32,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Iscrizioni</title>
+    <title>Modifica Password</title>
     <link rel="stylesheet" type="text/css" href="./changePassword.css">
 </head>
 <body>
@@ -79,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>

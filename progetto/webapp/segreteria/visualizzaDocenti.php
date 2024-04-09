@@ -9,14 +9,12 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente2"])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_docente2 = $_POST['id_docente2'];
 
-        // Esegui la chiamata alla procedura per eliminare il docente
         $query_delete_teacher = "CALL universal.delete_teacher($1)";
         $result_delete_teacher = pg_query_params($conn, $query_delete_teacher, array($id_docente2));
 
-        // Verifica se la procedura è stata eseguita con successo
         if ($result_delete_teacher) {
             echo '<script type="text/javascript">alert("Docente eliminato correttamente"); </script>';
         } else {

@@ -9,15 +9,13 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_studente = $_POST['id_studente'];
     $codice_cdl = $_POST['codice_cdl'];
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_subsribe_to_cdl = "CALL universal.subsribe_to_cdl($1, $2)";
     $result_subsribe_to_cdl = pg_query_params($conn, $query_subsribe_to_cdl, array($id_studente, $codice_cdl));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_subsribe_to_cdl) {
         echo '<script type="text/javascript">alert("Studente iscritto correttamente"); window.location = "./index.php";</script>';
     } else {
@@ -30,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Iscrivi A Cdl</title>
+    <title>Iscrivi A CdL</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -42,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
             </div>
             <br>
             <br>
-            <div class="titolo"><h1>Iscrivi A Cdl</h1></div>
+            <div class="titolo"><h1>Iscrivi A CdL</h1></div>
             <div class="tabella">
                 <table>
                     <tr>
@@ -52,13 +50,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli appelli degli esami
                     $query_get_all_cdl = "SELECT * FROM universal.get_all_cdl()";
                     $result_get_all_cdl = pg_query($conn, $query_get_all_cdl);
 
-                    // Verifica se ci sono risultati
                     if ($result_get_all_cdl && pg_num_rows($result_get_all_cdl) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
+
                         while ($row_get_all_cdl = pg_fetch_assoc($result_get_all_cdl)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_all_cdl['nome'] . "</td>";
@@ -75,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_cdl'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='4'>Nessun CdL disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

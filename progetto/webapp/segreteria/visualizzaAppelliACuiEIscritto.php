@@ -9,15 +9,13 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["codice_appello"])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_studente = $_POST['id_studente2'];
     $codice_appello = $_POST['codice_appello'];
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_unsubscribe_from_exam_appointment = "CALL universal.unsubscribe_from_exam_appointment($1, $2)";
     $result_unsubscribe_from_exam_appointment = pg_query_params($conn, $query_unsubscribe_from_exam_appointment, array($id_studente, $codice_appello));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_unsubscribe_from_exam_appointment) {
         echo '<script type="text/javascript">alert("Studente disiscritto correttamente"); window.location = "./index.php";</script>';
     } else {
@@ -53,13 +51,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["codice_appello"])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli appelli degli esami
                     $query_get_student_exam_enrollments = "SELECT * FROM universal.get_student_exam_enrollments($1)";
                     $result_get_student_exam_enrollments = pg_query_params($conn, $query_get_student_exam_enrollments, array($_POST['id_studente']));
 
-                    // Verifica se ci sono risultati
                     if ($result_get_student_exam_enrollments && pg_num_rows($result_get_student_exam_enrollments) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
+
                         while ($row_get_student_exam_enrollments = pg_fetch_assoc($result_get_student_exam_enrollments)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_student_exam_enrollments['data'] . "</td>";
@@ -75,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["codice_appello"])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='4'>Nessuna iscrizione attiva al momento.</td></tr>";
                     }
                     ?>
                 </table>

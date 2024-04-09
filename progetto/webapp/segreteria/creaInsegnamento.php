@@ -9,7 +9,7 @@ if (!isset($_SESSION['email'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
-    // Ottieni le informazioni inserite nel form
+
     $nome = $_POST['nome'];
     $descrizione = $_POST['descrizione'];
     $anno = $_POST['anno'];
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Crea Insegnamento Del Cdl</title>
+    <title>Crea Insegnamento Del CdL</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
             </div>
             <br>
             <br>
-            <div class="titolo"><h1>Crea Insegnamento del Cdl</h1></div>
+            <div class="titolo"><h1>Crea Insegnamento del CdL</h1></div>
             <form method="post" action="">
                 <input type='hidden' name='codice_CdL' value='<?php echo $_POST['cdl']; ?>' />
                 <div class="tabella">

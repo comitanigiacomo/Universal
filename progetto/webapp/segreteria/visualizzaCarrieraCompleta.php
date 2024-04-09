@@ -37,11 +37,9 @@ if (!isset($_SESSION['email'])) {
                     <th>Voto</th>
                 </tr>
                 <?php
-                // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
                 $query_get_student_grades = "SELECT * FROM universal.get_student_grades($1)";
                 $result_get_student_grades = pg_query_params($conn, $query_get_student_grades, array($_POST['id_studente']));
 
-                // Itera sui risultati e stampa le righe della tabella
                 while ($row_get_student_grades = pg_fetch_assoc($result_get_student_grades)) {
                     echo "<tr>";
                     echo "<td>" . $row_get_student_grades['nome'] . "</td>";
@@ -71,7 +69,7 @@ if (!isset($_SESSION['email'])) {
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>

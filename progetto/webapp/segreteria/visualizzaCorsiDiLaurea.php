@@ -39,13 +39,11 @@ if (!isset($_SESSION['email'])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli appelli degli esami
                     $query_get_all_cdl = "SELECT * FROM universal.get_all_cdl()";
                     $result_get_all_cdl = pg_query($conn, $query_get_all_cdl);
 
-                    // Verifica se ci sono risultati
                     if ($result_get_all_cdl && pg_num_rows($result_get_all_cdl) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
+
                         while ($row_get_all_cdl = pg_fetch_assoc($result_get_all_cdl)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_all_cdl['nome'] . "</td>";

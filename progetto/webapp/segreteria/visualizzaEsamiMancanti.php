@@ -37,11 +37,10 @@ if (!isset($_SESSION['email'])) {
                     <th>Codice</th>
                 </tr>
                 <?php
-                // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
+ 
                 $query_get_missing_exams_for_graduation = "SELECT * FROM universal.get_missing_exams_for_graduation($1)";
                 $result_get_missing_exams_for_graduation = pg_query_params($conn, $query_get_missing_exams_for_graduation, array($_POST['id_studente']));
 
-                // Itera sui risultati e stampa le righe della tabella
                 while ($row_get_missing_exams_for_graduation = pg_fetch_assoc($result_get_missing_exams_for_graduation)) {
                     echo "<tr>";
                     echo "<td>" . $row_get_missing_exams_for_graduation['nome'] . "</td>";
@@ -69,7 +68,7 @@ if (!isset($_SESSION['email'])) {
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>

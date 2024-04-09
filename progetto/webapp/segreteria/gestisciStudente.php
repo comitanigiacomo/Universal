@@ -15,16 +15,13 @@ $matricola = $_POST['matricola'];
 $corso_di_laurea = $_POST['corso_di_laurea'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente_per_disiscrizione"])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_studente = $_POST['id_studente_per_disiscrizione'];
     $motivo = $_POST['motivo'];
-    print_r($motivo);
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_studentToExStudent = "CALL universal.studentToExStudent($1, $2)";
     $result_studentToExStudent = pg_query_params($conn, $query_studentToExStudent, array($id_studente, $motivo));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_studentToExStudent) {
         echo '<script type="text/javascript">alert("Studente Disiscritto Correttamente"); </script>';
     } else {
@@ -118,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente_per_disisc
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>

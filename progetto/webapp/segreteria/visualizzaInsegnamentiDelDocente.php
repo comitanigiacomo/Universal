@@ -37,14 +37,11 @@ if (!isset($_SESSION['email'])) {
                         <th>Corso Di Laurea</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli insegnamenti del corso specificato
                    
                         $query_get_teaching_activity_of_professor = "SELECT * FROM universal.get_teaching_activity_of_professor($1)";
                         $result_get_teaching_activity_of_professor = pg_query_params($conn, $query_get_teaching_activity_of_professor, array($_POST['id_docente']));
 
-                        // Verifica se ci sono risultati
                         if ($result_get_teaching_activity_of_professor && pg_num_rows($result_get_teaching_activity_of_professor) > 0) {
-                            // Itera sui risultati e stampa le righe della tabella
                             while ($row_get_teaching_activity_of_professor = pg_fetch_assoc($result_get_teaching_activity_of_professor)) {
                                 echo "<tr>";
                                 echo "<td>" . $row_get_teaching_activity_of_professor['nome'] . "</td>";

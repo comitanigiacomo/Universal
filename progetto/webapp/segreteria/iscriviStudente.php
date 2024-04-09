@@ -14,16 +14,14 @@ if (isset($_POST['id_studente'])) {
     $id_studente = $_POST['id_studente'];
     $codice_appello = $_POST['codice_appello'];
 
-    // Esegui la chiamata alla procedura di disiscrizione dello studente
     $query_subscription = "CALL universal.subscription($1, $2)";
     $result_subscription = pg_query_params($conn, $query_subscription, array($id_studente, $codice_appello));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_subscription) {
         echo '<script type="text/javascript">alert("Studente iscritto correttamente"); </script>';
     } else {
         echo '<script type="text/javascript">alert("Errore nell\'iscrizione dello studente"); </script>';
-    } // Termina lo script dopo il reindirizzamento
+    } 
 }
 
 ?>
@@ -55,13 +53,11 @@ if (isset($_POST['id_studente'])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli studenti
                     $query_get_all_students_of_cdl = "SELECT * FROM universal.get_all_students_of_cdl($1)";
                     $result_get_all_students_of_cdl = pg_query_params($conn, $query_get_all_students_of_cdl, array($_POST['codice_cdl']));
 
-                    // Verifica se ci sono risultati
                     if ($result_get_all_students_of_cdl && pg_num_rows($result_get_all_students_of_cdl) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
+
                         while ($row_get_all_students_of_cdl = pg_fetch_assoc($result_get_all_students_of_cdl)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_all_students_of_cdl['nome'] . "</td>";

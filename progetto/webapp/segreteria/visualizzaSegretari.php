@@ -9,16 +9,13 @@ if (!isset($_SESSION['email'])) {
 }
 
 if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
-    // Recupera i dati dalla richiesta POST
     $id_segretario = $_POST['id_segretario'];
     $nuova_sede = $_POST['nuova_sede'];
 
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_change_secretary_office = "CALL universal.change_secretary_office($1, $2)";
     $result_change_secretary_office = pg_query_params($conn, $query_change_secretary_office, array($id_segretario, $nuova_sede));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_change_secretary_office) {
         echo '<script type="text/javascript">alert("Sede cambiata correttamente"); </script>';
     } else {
@@ -26,16 +23,13 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
     }
 
 } else if (isset($_POST["id_segretario2"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
-    // Recupera i dati dalla richiesta POST
     $id_segretario2 = $_POST['id_segretario2'];
     print_r($_id_segretario2);
 
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_delete_secretary = "CALL universal.delete_secretary($1)";
     $result_delete_secretary = pg_query_params($conn, $query_delete_secretary, array($id_segretario2));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_delete_secretary) {
         echo '<script type="text/javascript">alert("Segretario eliminato correttamente"); </script>';
     } else {
@@ -71,13 +65,10 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli appelli degli esami
                     $query_get_secretaries = "SELECT * FROM universal.get_secretaries()";
                     $result_get_secretaries = pg_query($conn, $query_get_secretaries);
 
-                    // Verifica se ci sono risultati
                     if ($result_get_secretaries && pg_num_rows($result_get_secretaries) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
                         while ($row_get_secretaries = pg_fetch_assoc($result_get_secretaries)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_secretaries['nome'] . "</td>";
@@ -102,7 +93,7 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='6'>Nessun segretario disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

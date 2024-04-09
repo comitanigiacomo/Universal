@@ -11,17 +11,14 @@ if (!isset($_SESSION['email'])) {
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
-    // Recupera i dati dalla richiesta POST
     $id_studente = $_POST['_id'];
     $id_docente = $_POST['id_docente'];
     $codice_appello = $_POST['codice_appello'];
     $voto = $_POST['voto'];
     
-    // Esegui la chiamata alla procedura di inserimento della valutazione
     $query_insert_grade = "CALL universal.insert_grade($1, $2, $3, $4)";
     $result_insert_grade = pg_query_params($conn, $query_insert_grade, array($id_studente, $id_docente, $codice_appello, $voto));
 
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_insert_grade) {
         echo '<script type="text/javascript">alert("Valutazione inserita correttamente"); window.location = "./index.php";</script>';
     } else {
@@ -59,13 +56,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
                     <?php
                     $codice_appello = $_POST['codice_appello'];
 
-                    // Esegui la query per ottenere gli iscritti all'appello specificato
                     $query_get_exam_enrollments = "SELECT * FROM universal.get_exam_enrollments($1)";
                     $result_get_exam_enrollments = pg_query_params($conn, $query_get_exam_enrollments, array($codice_appello));
 
-                    // Verifica se ci sono risultati
                     if ($result_get_exam_enrollments && pg_num_rows($result_get_exam_enrollments) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
                         while ($row_get_exam_enrollments = pg_fetch_assoc($result_get_exam_enrollments)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_exam_enrollments['nome'] . "</td>";

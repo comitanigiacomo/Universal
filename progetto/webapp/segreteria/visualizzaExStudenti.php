@@ -36,13 +36,13 @@ if (!isset($_SESSION['email'])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli appelli degli esami
+
                     $query_get_all_exstudents = "SELECT * FROM universal.get_all_exstudents()";
                     $result_get_all_exstudents = pg_query($conn, $query_get_all_exstudents);
 
-                    // Verifica se ci sono risultati
+
                     if ($result_get_all_exstudents && pg_num_rows($result_get_all_exstudents) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
+
                         while ($row_get_all_exstudents = pg_fetch_assoc($result_get_all_exstudents)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_all_exstudents['nome'] . "</td>";
@@ -67,7 +67,7 @@ if (!isset($_SESSION['email'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='4'>Nessun ex studente disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

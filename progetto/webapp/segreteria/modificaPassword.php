@@ -10,15 +10,14 @@ if (!isset($_SESSION['email'])) {
 
 // Controlla se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Ottieni le password inserite nel form
+
     $vecchia_password = $_POST['old_password'];
     $nuova_password = $_POST['new_password'];
 
-    // Chiamata alla procedura per cambiare la password
+
     $query_change_password = "CALL universal.change_password($1, $2, $3)";
     $result_change_password = pg_query_params($conn, $query_change_password, array($_SESSION['id'], $vecchia_password, $nuova_password));
 
-    // Controllo del risultato della query
     if (!$result_change_password) {
         echo '<script type="text/javascript">alert("Error: Errore durante il cambio password");</script>';
         exit;

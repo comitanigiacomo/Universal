@@ -76,7 +76,7 @@ $sede = $row_get_secretary['sede'];
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>

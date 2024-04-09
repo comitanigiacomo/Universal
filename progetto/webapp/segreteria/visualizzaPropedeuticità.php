@@ -37,14 +37,11 @@ $id_insegnamento =$_POST['codice'];
                         <th>Docente Responsabile</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli insegnamenti del corso specificato
                     if($id_insegnamento !== null) {
                         $query_get_propaedeutics = "SELECT * FROM universal.get_propaedeutics($1)";
                         $result_get_propaedeutics = pg_query_params($conn, $query_get_propaedeutics, array($id_insegnamento));
 
-                        // Verifica se ci sono risultati
                         if ($result_get_propaedeutics && pg_num_rows($result_get_propaedeutics) > 0) {
-                            // Itera sui risultati e stampa le righe della tabella
                             while ($row_get_propaedeutics = pg_fetch_assoc($result_get_propaedeutics)) {
                                 echo "<tr>";
                                 echo "<td>" . $row_get_propaedeutics['nome'] . "</td>";

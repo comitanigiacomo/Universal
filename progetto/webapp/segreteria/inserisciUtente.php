@@ -19,7 +19,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $query_insert_utente = "CALL universal.insert_utente($1, $2, $3, $4)";
     $result_insert_utente = pg_query_params($conn, $query_insert_utente, array($nome, $cognome, $tipo_utente, $password));
 
-    // Controllo del risultato della query
     if (!$result_insert_utente) {
         $error_message = pg_last_error($conn);
         echo '<script type="text/javascript">alert("Errore durante la creazione dell\'utente: ' . $error_message . '"); window.location = "./index.php";</script>';

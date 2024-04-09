@@ -8,25 +8,18 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
-    // Recupera i dati dalla richiesta POST
+
     $id_studente = $_POST['id_studente'];
     $motivo = $_POST['motivo'];
 
-    // Esegui la chiamata alla procedura di disiscrizione dello studente
     $query_studentToExStudent = "CALL universal.studentToExStudent($1, $2)";
     $result_studentToExStudent = pg_query_params($conn, $query_studentToExStudent, array($id_studente, $motivo));
 
-    if (!$result_studentToExStudent) {
-        $error_message = pg_last_error($conn);
-        echo '<script type="text/javascript">alert("Errore nella disiscrizione dello studente: ' . $error_message . '"); </script>';
-    }
-
-    // Verifica se la procedura è stata eseguita con successo
     if ($result_studentToExStudent) {
         echo '<script type="text/javascript">alert("Studente disiscritto correttamente"); </script>';
     } else {
         echo '<script type="text/javascript">alert("Errore nella disiscrizione dello studente"); </script>';
-    } // Termina lo script dopo il reindirizzamento
+    } 
 }
 
 ?>
@@ -58,13 +51,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    // Esegui la query per ottenere gli studenti
                     $query_get_all_students = "SELECT * FROM universal.get_all_students()";
                     $result_get_all_students = pg_query($conn, $query_get_all_students);
 
-                    // Verifica se ci sono risultati
                     if ($result_get_all_students && pg_num_rows($result_get_all_students) > 0) {
-                        // Itera sui risultati e stampa le righe della tabella
                         while ($row_get_all_students = pg_fetch_assoc($result_get_all_students)) {
                             echo "<tr>";
                             echo "<td>" . $row_get_all_students['nome'] . "</td>";
