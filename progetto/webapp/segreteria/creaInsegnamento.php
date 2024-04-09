@@ -24,11 +24,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
 
     // Controllo del risultato della query
     if (!$result_insert_teaching) {
-        echo '<script type="text/javascript">alert("Errore durante la creazione dell\'insegnamento");</script>';
+        echo '<script type="text/javascript">alert("Errore durante la creazione dell\'insegnamento");window.location.href = "./index.php";</script>';
         exit;
     }
 
-    echo '<script type="text/javascript">alert("Insegnamento creato con successo"); </script>';
+    echo '<script type="text/javascript">alert("Insegnamento creato con successo");window.location.href = "./index.php";</script>';
 }
 ?>
 

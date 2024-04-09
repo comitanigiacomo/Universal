@@ -45,6 +45,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente_per_disisc
             <div class="benvenuto">
                 <h2>Studenti Universal</h2>
             </div>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="spiegazione">
                 <p>Qui puoi gestire lo studente.</p>
             </div>
