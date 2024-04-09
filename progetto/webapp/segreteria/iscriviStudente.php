@@ -41,6 +41,9 @@ if (isset($_POST['id_studente'])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Studenti di Universal</h1></div>
             <div class="tabella">
                 <table>

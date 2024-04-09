@@ -27,6 +27,9 @@ $id_insegnamento =$_POST['codice'];
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Insegnamenti Del Corso</h1></div>
             <div class="tabella">
                 <table>
@@ -51,16 +54,16 @@ $id_insegnamento =$_POST['codice'];
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='5'>Nessuna propedeuticità disponibile per questo corso.</td></tr>";
+                            echo "<tr><td colspan='4'>Nessuna propedeuticità disponibile per questo corso.</td></tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='5'>ID insegnamento non valido.</td></tr>";
+                        echo "<tr><td colspan='4'>ID insegnamento non valido.</td></tr>";
                     }
                     ?>
                 </table>
             </div>
 
-            <div class="crea-prop">
+            <div class="low-button">
                 <form method="post" action="./creaPropedeuticità.php">
                     <input type='hidden' name='codice_corso' value='<?php echo $id_insegnamento; ?>' />
                     <input type='hidden' name='codice_cdl' value='<?php echo $_POST['codice_cdl']; ?>' />

@@ -24,6 +24,9 @@ if (!isset($_SESSION['email'])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Studenti di Universal</h1></div>
             <div class="tabella">
                 <table>
@@ -67,7 +70,7 @@ if (!isset($_SESSION['email'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun ex studente disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='6'>Nessun ex studente disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

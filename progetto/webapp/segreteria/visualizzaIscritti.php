@@ -43,6 +43,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Iscritti All'appello</h1></div>
             <div class="tabella">
                 <table>
@@ -83,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
                     ?>
                 </table>
 
-                <div class="aggiungi-iscrizione">
+                <div class="low-button">
                     <form method="post" action="./iscriviStudente.php">
                         <input type='hidden' name='codice_appello' value='<?php echo $codice_appello; ?>' />
                         <input type='hidden' name='codice_cdl' value='<?php echo $_POST['codice_cdl']; ?>' />

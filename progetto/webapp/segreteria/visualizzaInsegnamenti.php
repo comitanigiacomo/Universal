@@ -27,6 +27,9 @@ $id_cdl =$_POST['codice_CdL'];
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Insegnamenti Del Corso</h1></div>
             <div class="tabella">
                 <table>

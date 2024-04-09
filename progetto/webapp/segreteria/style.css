@@ -3,7 +3,7 @@ html, body {
     font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100%;
     height: auto;
 }
 
@@ -61,10 +61,12 @@ tr:nth-child(even) {
     background-color: #ffffff; /* Colore per le righe pari */
 }
 
-table tr {
+table tr,td {
     text-align: center;
     width: auto; 
 }
+
+
 button {
     padding: 10px 20px;
     border-radius: 10px;

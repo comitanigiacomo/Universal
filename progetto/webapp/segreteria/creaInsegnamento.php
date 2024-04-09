@@ -47,6 +47,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Crea Insegnamento del CdL</h1></div>
             <form method="post" action="">
                 <input type='hidden' name='codice_CdL' value='<?php echo $_POST['cdl']; ?>' />

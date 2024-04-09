@@ -45,6 +45,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
         </div>
         <br>
         <br>
+        <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
         <div class="titolo"><h3>Modifica Password</h3></div>
         <div class="modifica">
         <form method="POST" action="">

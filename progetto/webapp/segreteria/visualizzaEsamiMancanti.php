@@ -26,6 +26,9 @@ if (!isset($_SESSION['email'])) {
         </div>
         <br>
         <br>
+        <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
         <div class="titolo"><h1>Esami Mancanti Al Conseguimento Della Laurea</h1></div>
         <div class="tabella">
             <table>

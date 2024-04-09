@@ -50,6 +50,9 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Appelli Dell'insegnamento</h1></div>
             <div class="tabella">
                 <table>
@@ -82,7 +85,7 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='5'>Nessun appello disponibile al momento.</td></tr>";
                     }
                     ?>
 

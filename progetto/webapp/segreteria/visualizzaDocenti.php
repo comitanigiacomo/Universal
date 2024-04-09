@@ -39,6 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_docente2"])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Docenti di Universal</h1></div>
             <div class="tabella">
                 <table>

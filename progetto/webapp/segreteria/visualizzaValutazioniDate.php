@@ -14,7 +14,7 @@ if (!isset($_SESSION['email'])) {
 <html>
 <head>
     <title>Valutazioni assegnate dal docente</title>
-    <link rel="stylesheet" type="text/css" href="../studente/iscrizioni.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div class="sfondo">
@@ -25,6 +25,9 @@ if (!isset($_SESSION['email'])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>valutazioni assegnate dal docente</h1></div>
             <div class="tabella">
                 <table>
@@ -54,7 +57,7 @@ if (!isset($_SESSION['email'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='5'>Nessuna valutazione assegnata.</td></tr>";
+                        echo "<tr><td colspan='7'>Nessuna valutazione assegnata.</td></tr>";
                     }
                     ?>
                 </table>

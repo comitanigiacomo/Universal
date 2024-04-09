@@ -54,6 +54,9 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Segretari di Universal</h1></div>
             <div class="tabella">
                 <table>
@@ -93,7 +96,7 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6'>Nessun segretario disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='5'>Nessun segretario disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>

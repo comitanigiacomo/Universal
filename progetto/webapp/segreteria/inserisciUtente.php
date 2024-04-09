@@ -45,6 +45,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <br>
             <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h3>Crea Utente</h3></div>
             <div class="modifica">
                 <form method="POST" action="">
