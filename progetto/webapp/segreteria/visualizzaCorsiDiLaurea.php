@@ -26,6 +26,9 @@ if (!isset($_SESSION['email'])) {
             </div>
             <br>
             <br>
+            <div class="home">
+                <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
             <div class="titolo"><h1>Corsi Di Universal</h1></div>
             <div class="tabella">
                 <table>
@@ -58,12 +61,12 @@ if (!isset($_SESSION['email'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4'>Nessun appello disponibile al momento.</td></tr>";
+                        echo "<tr><td colspan='4'>Nessun corso di laurea disponibile al momento.</td></tr>";
                     }
                     ?>
                 </table>
             </div>
-            <div class="crea-corso">
+            <div class="low-button">
                 <form method="post" action="./creaCorsoDiLaurea.php">
                     <button type="submit">Crea Nuovo Corso di Laurea</button>
                 </form>

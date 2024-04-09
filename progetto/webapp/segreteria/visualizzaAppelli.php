@@ -109,7 +109,6 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
                             <td><input type="text" name="luogo" placeholder="Luogo" required></td>
                             <input type='hidden' name='codice_insegnamento' value= <?php echo $codice_insegnamento?>>
                             <td><?php echo $nome; ?></td>
-                            <td><?php echo $corso_di_laurea; ?></td> 
                             <td><button type="submit" name="crea_appello">Crea Nuovo Appello</button></td>
                         </form>
                     </tr>

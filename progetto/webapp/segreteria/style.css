@@ -1,22 +1,22 @@
 html, body {
-    height :100%;
     margin: 0;
-    padding: 0;
     font-family: Arial, sans-serif;
-    min-height: 100%;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    height: auto;
 }
 
 footer {
     height: 10%;
-    background-color: #27292b; /* Colore grigio chiaro */
+    background-color: #27292b;
     display: flex;
     flex-direction: column;
     text-align: center;
     align-items: center;
     justify-content: center;
     color: rgba(255, 255, 255, 0.747);
+    margin-top: auto;
 }
 
 footer div {
@@ -28,16 +28,13 @@ footer a {
 }
 
 .titolo {
-    flex: 0.5;
+    flex: 0.1;
 }
 table {
-    table-layout: fixed;
-    width: auto; 
     border-collapse: collapse; /* Combina i bordi delle celle */
     border: 1px solid #000; /* Stile e colore del bordo esterno della tabella */
     background-color: #ffffff;
     display: flex;
-    flex: 0.2;
     align-items: center;
     justify-content: center;
     margin-bottom: 50px;
@@ -55,7 +52,7 @@ table tr:first-child th {
 
 /* Stile per le righe dispari */
 tr:nth-child(odd) {
-    background-color: #3a99ff; /* Colore per le righe dispari */
+    background-color: #002752; /* Colore per le righe dispari */
     color: #ffffff;
 }
 
@@ -84,26 +81,25 @@ button:hover {
 
 
 .sfondo {
-    height: 90%;
     display: flex;
     background-image: url('/background.png'); 
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
 }
 
 .contenitore {
+    padding: 30px;
     background-color: #ffffff; 
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    padding: 30px;
-    height: fit-content;
-    width: fit-content;
     min-height: 70%;
     min-width: 50%;
-    height: fit-content;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    width: fit-content;
 }
-
 .contenitore .titolo {
     display: flex;
     align-items: center;
@@ -117,7 +113,7 @@ button:hover {
     flex: 1;
 }
 
-.logo {
+.logo{
     font-size: 37px; /* Dimensione del testo */
     font-weight: bold; /* Grassetto */
     display: flex;
@@ -133,8 +129,34 @@ button:hover {
     transition: 0.3s;
 }
 
+.home {
+    font-size: 20px;
+    font-weight: bold; /* Grassetto */
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.home a {
+    text-decoration: none;
+    color : black;
+}
+
+.home a:hover {
+    color: #007bff; /* Cambia colore al passaggio del mouse */
+    transition: 0.3s;
+}
+
 .tabella {
     display: flex;
     flex-direction: column;
+    flex: 1;
+}
+
+.low-button form {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 

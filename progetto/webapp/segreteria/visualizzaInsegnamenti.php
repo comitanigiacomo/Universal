@@ -8,7 +8,7 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
-$id_insegnamento =$_POST['codice_CdL'];
+$id_cdl =$_POST['codice_CdL'];
 
 ?>
 
@@ -39,9 +39,9 @@ $id_insegnamento =$_POST['codice_CdL'];
                     </tr>
                     <?php
                     // Esegui la query per ottenere gli insegnamenti del corso specificato
-                    if($id_insegnamento !== null) {
+                    if($id_cdl !== null) {
                         $query_get_teaching_of_cdl = "SELECT * FROM universal.get_teaching_of_cdl($1)";
-                        $result_get_teaching_of_cdl = pg_query_params($conn, $query_get_teaching_of_cdl, array($id_insegnamento));
+                        $result_get_teaching_of_cdl = pg_query_params($conn, $query_get_teaching_of_cdl, array($id_cdl));
 
                         // Verifica se ci sono risultati
                         if ($result_get_teaching_of_cdl && pg_num_rows($result_get_teaching_of_cdl) > 0) {
@@ -80,7 +80,7 @@ $id_insegnamento =$_POST['codice_CdL'];
                 </table>
             </div>
 
-            <div class="crea-corso">
+            <div class="low-button">
                 <form method="post" action="./creaInsegnamento.php">
                     <input type='hidden' name='cdl' value='<?php echo $_POST['codice_CdL2']; ?>' />
                     <button type="submit">Crea Nuovo Insegnamento Del CdL</button>

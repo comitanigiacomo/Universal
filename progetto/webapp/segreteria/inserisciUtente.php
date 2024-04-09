@@ -10,13 +10,12 @@ if (!isset($_SESSION['email'])) {
 
 // Controlla se il form è stato inviato
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Ottieni le password inserite nel form
+
     $nome = $_POST['nome'];
     $cognome = $_POST['cognome'];
     $tipo_utente = $_POST['tipo_utente'];
     $password = $_POST['password'];
 
-    // Chiamata alla procedura per cambiare la password
     $query_insert_utente = "CALL universal.insert_utente($1, $2, $3, $4)";
     $result_insert_utente = pg_query_params($conn, $query_insert_utente, array($nome, $cognome, $tipo_utente, $password));
 
@@ -78,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             Made by Jack during the small hours
         </div>
         <div>
-            <a href="https://letmegooglethat.com/?q=cerca+qui+i+tuoi+problemi%2C+grazie">Assistenza Universal</a>
+            <a href="https://google.com">Assistenza Universal</a>
             <br>
         </div>
     </footer>
