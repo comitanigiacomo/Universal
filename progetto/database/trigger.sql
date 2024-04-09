@@ -22,6 +22,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER aggiorna_tabella_trigger
+BEFORE INSERT ON universal.utenti
+FOR EACH ROW
+EXECUTE FUNCTION aggiorna_tabella();
+
 -- ELIMINA IL DOCENTE, L'EX STUDENTE O IL SEGRETARIO, E L'UTENTE CORRISPONDENTE
 CREATE OR REPLACE FUNCTION elimina_utente_dopo_cancellazione()
 RETURNS TRIGGER AS $$
@@ -30,6 +35,26 @@ BEGIN
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
+AFTER DELETE ON universal.studenti
+FOR EACH ROW
+EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
+
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
+AFTER DELETE ON universal.ex_studenti
+FOR EACH ROW
+EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
+
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
+AFTER DELETE ON universal.segretari
+FOR EACH ROW
+EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
+
+CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger
+AFTER DELETE ON universal.docenti
+FOR EACH ROW
+EXECUTE FUNCTION elimina_utente_dopo_cancellazione();
 
 -- CONTROLLA CHE UN DOCENTE NON SIA RESPONSABILE DI PIU DI 3 CORSI
 CREATE OR REPLACE FUNCTION check_number_of_session()
@@ -47,7 +72,7 @@ BEGIN
     -- Ottieni la data dell'appello
     SELECT data INTO data_appello
     FROM universal.appelli
-    WHERE codice = NEW.appello;
+    WHERE codice = NEW.codice;
 
     -- Conta il numero di appelli nella stessa data per lo stesso corso di laurea
     SELECT COUNT(*)
@@ -77,7 +102,7 @@ CREATE OR REPLACE FUNCTION check_subscription_to_cdl()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Controlla se lo studente è già iscritto a un corso di laurea
-    IF EXISTS (SELECT 1 FROM universal.studenti WHERE id = NEW.id) THEN
+    IF EXISTS (SELECT 1 FROM universal.studenti WHERE id = NEW.id AND corso_di_laurea IS NOT NULL) THEN
         RAISE EXCEPTION 'Lo studente è già iscritto a un corso di laurea.';
     END IF;
     RETURN NEW;
@@ -85,22 +110,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Creazione del trigger
-CREATE TRIGGER check_subscription_trigger
-BEFORE INSERT ON universal.studenti
+CREATE TRIGGER check_subscription_to_cdl_trigger
+BEFORE INSERT OR UPDATE OF corso_di_laurea ON universal.studenti
 FOR EACH ROW
 EXECUTE FUNCTION check_subscription_to_cdl();
 
--- CONTROLLA CHE NON CI SIANO CICLICITÀ TRA LE PROPEDEUTICITÀ
-
-    CREATE OR REPLACE FUNCTION non_cyclic_prerequisites_check()
-RETURNS TRIGGER AS $$
-
-BEGIN
-
-END;
-$$ LANGUAGE plpgsql;
-
--- CONTROLLA LE PROPEDEUTICITÀ ALL'ISCRIZIONE DI UN APPELLO
 CREATE OR REPLACE FUNCTION non_cyclic_prerequisites_check()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -112,10 +126,9 @@ BEGIN
     propedeuticita_id := NEW.propedeuticità;
 
     -- Verifica ricorsiva delle propedeuticità per rilevare ciclicità
-    WHILE propedeuticita_id IS NOT NULL LOOP
+    WHILE propedeuticita_id IS NOT NULL AND NOT is_cyclic LOOP
         IF current_insegnamento_id = propedeuticita_id THEN
             is_cyclic := TRUE;
-            EXIT;
         END IF;
 
         SELECT propedeuticità INTO propedeuticita_id
@@ -155,7 +168,7 @@ BEGIN
     -- Ottieni la data dell'appello
     SELECT data INTO data_appello
     FROM universal.appelli
-    WHERE codice = NEW.appello;
+    WHERE codice = NEW.codice;
 
     -- Conta il numero di appelli nella stessa data per lo stesso corso di laurea
     SELECT COUNT(*)
@@ -211,4 +224,44 @@ CREATE TRIGGER enforce_instructor_course_limit
 BEFORE INSERT ON universal.insegnamenti
 FOR EACH ROW
 EXECUTE FUNCTION check_instructor_course_limit();
+
+
+-- CONTROLLA CHE L'ISCRIZIONE DI UNO STUDENTE AD UN APPELLO RISPETTI LE PROPEDEUTICITÀ
+CREATE OR REPLACE FUNCTION check_prerequisites_before_enrollment()
+RETURNS TRIGGER AS $$
+DECLARE
+    prereq_count INTEGER;
+BEGIN
+    -- Controlla se ci sono insegnamenti correlati all'appello che richiedono propedeuticità
+    SELECT COUNT(*) INTO prereq_count
+    FROM universal.propedeutico p
+    WHERE p.insegnamento = NEW.insegnamento;
+
+    -- Se ci sono propedeuticità richieste
+    IF prereq_count > 0 THEN
+        -- Controlla se lo studente soddisfa le propedeuticità necessarie
+        SELECT COUNT(*) INTO prereq_count
+        FROM universal.propedeutico p
+        WHERE p.insegnamento = NEW.insegnamento
+        AND p.propedeuticità NOT IN (
+            SELECT i.insegnamento
+            FROM universal.iscritti i
+            WHERE i.studente = NEW.studente
+        );
+
+        -- Se lo studente non soddisfa le propedeuticità richieste, genera un errore
+        IF prereq_count > 0 THEN
+            RAISE EXCEPTION 'Lo studente non soddisfa le propedeuticità necessarie per questo appello.';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER before_enrollment_check_prerequisites
+BEFORE INSERT ON universal.iscritti
+FOR EACH ROW
+EXECUTE FUNCTION check_prerequisites_before_enrollment();
+
 
