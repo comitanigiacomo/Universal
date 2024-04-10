@@ -9,9 +9,9 @@ Giacomo Comitani, Matricola 986596
 
 # Database
 
-Lo schema ER è disponibile cliccando [qui](https://app.diagrams.net/)
+Lo schema ER è disponibile cliccando [qui](ER.png)
 
-Lo schema logico è disponibile cliccando [qui]()
+Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 # Implementazioni Significative
 
