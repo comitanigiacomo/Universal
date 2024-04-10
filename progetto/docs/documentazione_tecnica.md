@@ -3,17 +3,15 @@ Giacomo Comitani, Matricola 986596
 - [Funzioni Realizzate](#funzioni-realizzate)
 
 - [Database](#database)
- - [Schema ER](#schema-er)
- - [Schema Logico](#schema-logico)
 
 - [Implementazioni Significative](#implementazioni-significative)
 
 
 # Database
 
-## Schema ER
+    Lo schema ER è disponibile cliccando [qui](https://app.diagrams.net/)
 
-## Schema logico 
+    Lo schema logico è disponibile cliccando [qui]()
 
 # Implementazioni Significative
 
