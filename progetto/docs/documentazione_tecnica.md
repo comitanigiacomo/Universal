@@ -1,10 +1,10 @@
 Giacomo Comitani, Matricola 986596
 
-- [Funzioni Realizzate](#funzioni-realizzate)
-
 - [Database](#database)
 
 - [Implementazioni Significative](#implementazioni-significative)
+
+- [Funzioni Realizzate](#funzioni-realizzate)
 
 
 # Database

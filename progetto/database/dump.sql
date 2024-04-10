@@ -1,34 +1,20 @@
-create table docenti
+create table appelli
 (
-    id      uuid not null
+    codice       serial
         primary key,
-    ufficio varchar(100)
+    data         date        not null,
+    luogo        varchar(40) not null,
+    insegnamento integer     not null
 );
 
-alter table docenti
+alter table appelli
     owner to giacomo;
 
-create trigger elimina_utente_dopo_cancellazione_trigger
-    after delete
-    on docenti
+create trigger enforce_unique_sessions_per_day
+    before insert
+    on appelli
     for each row
-execute procedure public.elimina_utente_dopo_cancellazione();
-
-create table segretari
-(
-    id   uuid not null
-        primary key,
-    sede varchar(40) default 'sede_centrale'::character varying
-);
-
-alter table segretari
-    owner to giacomo;
-
-create trigger elimina_utente_dopo_cancellazione_trigger
-    after delete
-    on segretari
-    for each row
-execute procedure public.elimina_utente_dopo_cancellazione();
+execute procedure public.check_number_of_session();
 
 create table utenti
 (
@@ -47,7 +33,7 @@ create table utenti
     email    varchar(255)                   not null
         constraint utenti_email_check
             check ((email)::text <> ''::text),
-    password text                           not null
+    password varchar(255)                   not null
 );
 
 alter table utenti
@@ -58,6 +44,40 @@ create trigger aggiorna_tabella_trigger
     on utenti
     for each row
 execute procedure public.aggiorna_tabella();
+
+create table docenti
+(
+    id      uuid not null
+        primary key
+        references utenti,
+    ufficio varchar(100)
+);
+
+alter table docenti
+    owner to giacomo;
+
+create trigger elimina_utente_dopo_cancellazione_trigger
+    after delete
+    on docenti
+    for each row
+execute procedure public.elimina_utente_dopo_cancellazione();
+
+create table segretari
+(
+    id   uuid not null
+        primary key
+        references utenti,
+    sede varchar(40) default 'sede_centrale'::character varying
+);
+
+alter table segretari
+    owner to giacomo;
+
+create trigger elimina_utente_dopo_cancellazione_trigger
+    after delete
+    on segretari
+    for each row
+execute procedure public.elimina_utente_dopo_cancellazione();
 
 create table corsi_di_laurea
 (
@@ -75,12 +95,41 @@ create table corsi_di_laurea
 alter table corsi_di_laurea
     owner to giacomo;
 
+create table studenti
+(
+    id              uuid    not null
+        primary key
+        references utenti,
+    matricola       integer not null
+        unique,
+    corso_di_laurea integer
+        references corsi_di_laurea
+            on update cascade
+);
+
+alter table studenti
+    owner to giacomo;
+
+create trigger elimina_utente_dopo_cancellazione_trigger
+    after delete
+    on studenti
+    for each row
+execute procedure public.elimina_utente_dopo_cancellazione();
+
+create trigger check_subscription_to_cdl_trigger
+    before insert or update
+        of corso_di_laurea
+    on studenti
+    for each row
+execute procedure public.check_subscription_to_cdl();
+
 create table ex_studenti
 (
     id              uuid       not null
         primary key
         references utenti,
-    matricola       integer    not null,
+    matricola       integer    not null
+        references studenti (matricola),
     motivo          tipomotivo not null,
     corso_di_laurea integer
         references corsi_di_laurea
@@ -89,6 +138,12 @@ create table ex_studenti
 
 alter table ex_studenti
     owner to giacomo;
+
+create trigger elimina_utente_dopo_cancellazione_trigger
+    after delete
+    on ex_studenti
+    for each row
+execute procedure public.elimina_utente_dopo_cancellazione();
 
 create table insegnamenti
 (
@@ -111,46 +166,11 @@ create table insegnamenti
 alter table insegnamenti
     owner to giacomo;
 
-create table appelli
-(
-    codice       serial
-        primary key,
-    data         date        not null,
-    luogo        varchar(40) not null,
-    insegnamento integer     not null
-        references insegnamenti
-            on update cascade
-);
-
-alter table appelli
-    owner to giacomo;
-
-create trigger enforce_unique_sessions_per_day
+create trigger enforce_instructor_course_limit
     before insert
-    on appelli
+    on insegnamenti
     for each row
-execute procedure public.check_number_of_session();
-
-create table studenti
-(
-    id              uuid    not null
-        primary key
-        references utenti,
-    matricola       integer not null
-        unique,
-    corso_di_laurea integer
-        references corsi_di_laurea
-            on update cascade
-);
-
-alter table studenti
-    owner to giacomo;
-
-create trigger check_subscription_trigger
-    before insert
-    on studenti
-    for each row
-execute procedure public.check_subscription_to_cdl();
+execute procedure public.check_instructor_course_limit();
 
 create table iscritti
 (
@@ -167,6 +187,12 @@ create table iscritti
 
 alter table iscritti
     owner to giacomo;
+
+create trigger before_enrollment_check_prerequisites
+    before insert
+    on iscritti
+    for each row
+execute procedure public.check_prerequisites_before_enrollment();
 
 create table propedeutico
 (
@@ -217,7 +243,7 @@ DECLARE
     crypt_password VARCHAR(255);
 BEGIN
     -- Verifica che la password soddisfi i vincoli prima della crittografia
-    IF LENGTH(password) != 8 OR NOT (password ~ '[!@#$%^&*()-_+=]') THEN
+    IF LENGTH(password) != 8 OR NOT (password ~ '.*[!@#$%^&*()-_+=].*') THEN
         RAISE EXCEPTION 'La password deve essere lunga 8 caratteri e contenere almeno un carattere speciale.';
     END IF;
 
@@ -432,7 +458,7 @@ $$
                     s.sede
                 FROM universal.utenti AS u
                     INNER JOIN universal.segretari AS s ON u.id = s.id
-                WHERE u.tipo= 'segretario'
+                WHERE u.tipo = 'segretario'
                 ORDER BY u.nome;
             END ;
         $$;
@@ -1017,7 +1043,7 @@ $$
                     INNER JOIN universal.utenti AS u ON i.studente = u.id
                     INNER JOIN universal.appelli AS a ON i.appello= a.codice
                     INNER JOIN universal.insegnamenti AS ins ON a.insegnamento = ins.codice
-                WHERE u.id = _id
+                WHERE u.id = _id AND i.voto IS NULL
                 ORDER BY data;
             END ;
         $$;
@@ -1477,4 +1503,57 @@ $$
 $$;
 
 alter function get_propaedeutics(integer) owner to giacomo;
+
+create function get_all_students_of_cdl(codice_cdl integer, id_studente uuid)
+    returns TABLE(nome character varying, cognome character varying, email character varying, matricola integer, cdl text)
+    language plpgsql
+as
+$$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.nome,
+            u.cognome,
+            u.email,
+            s.matricola,
+            s.corso_di_laurea
+        FROM
+            universal.studenti AS s
+        INNER JOIN
+            universal.utenti AS u ON s.id = u.id
+        WHERE
+            s.corso_di_laurea =  codice_cdl AND s.id =  id_studente
+        ORDER BY
+            s.matricola;
+    END;
+$$;
+
+alter function get_all_students_of_cdl(integer, uuid) owner to giacomo;
+
+create function get_all_students_of_cdl(codice_cdl integer)
+    returns TABLE(id uuid, nome character varying, cognome character varying, email character varying, matricola integer, cdl integer)
+    language plpgsql
+as
+$$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            s.id,
+            u.nome,
+            u.cognome,
+            u.email,
+            s.matricola,
+            s.corso_di_laurea
+        FROM
+            universal.studenti AS s
+        INNER JOIN
+            universal.utenti AS u ON s.id = u.id
+        WHERE
+            s.corso_di_laurea =  codice_cdl
+        ORDER BY
+            s.matricola;
+    END;
+$$;
+
+alter function get_all_students_of_cdl(integer) owner to giacomo;
 
