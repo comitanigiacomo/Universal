@@ -258,7 +258,7 @@ La procedura svolge i seguenti passaggi:
 
 Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispetto a quelle accessibili agli studenti. Un docente che effettua il login al sistema viene reindirizzato inizialmente ala seguente pagina: 
 
-![alt text](image-1.png)
+![alt text](image-3.png)
 
 I docenti possono modificare la propria password, e gestire gli insegnamenti di cui sono responsabili, visualizzandone gli appelli, creandone di nuovi, e visualizzare gli studenti iscritti agli appelli. Infine possono visualizzare un elenco delle valutazioni che hanno assegnato 
 
@@ -314,7 +314,7 @@ I segretari sono gli utenti con maggior potere all'interno del sistema, datoche 
 
 Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
 
-![alt text](image-1.png)
+![alt text](image-6.png)
 
 Da qui un segretario puo' come di consueto modificare la propria password, ma amche gestire studenti e docenti. 
 
