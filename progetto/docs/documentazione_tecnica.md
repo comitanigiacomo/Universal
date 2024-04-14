@@ -15,6 +15,49 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 # Implementazioni Significative
 
+## Login
+
+Il file `login.php` si occupa di permettere all'utente di accedere al sistema, e quindi reindirizzarlo correttamente alla propria area personale. Per fare questo, una volta verificate le credenziali inserite dall'utente, questo verrà reindirizato alla propria area personale in base al suo tipo 
+
+```php
+if(isset($_POST["email"]) && isset($_POST["password"])) {
+        $email = $_POST["email"];
+        $password = $_POST["password"];
+        $_SESSION['email'] = $email;
+        
+        // Esegui la query per controllare le credenziali dell'utente
+        $result = pg_query_params($conn, 'SELECT * FROM universal.utenti WHERE email = $1 AND password = crypt($2, password)', array($email, $password));
+
+        // Verifica se la query ha restituito una riga
+        if (pg_num_rows($result) == 1) {
+            $query_get_id = "SELECT * FROM universal.get_id($1)";
+            $result_get_id = pg_query_params($conn, $query_get_id, array($_SESSION['email']));
+            $row_get_id = pg_fetch_assoc($result_get_id);
+            $_SESSION['id'] = $row_get_id['id'];
+            // L'utente è autorizzato, reindirizzalo alla pagina corretta
+            $type = Get_type($email);
+            print_r($type);
+            switch ($type){
+                case "studenti":
+                    header("Location: /progetto/webapp/studente/index.php");
+                    exit();
+                case "exstudenti":
+                    header("Location: /progetto/webapp/ex_studente/index.php");
+                    exit();
+                case "docenti":
+                    header("Location: /progetto/webapp/docente/index.php");
+                    exit();
+                case "segretari":
+                    header("Location: /progetto/webapp/segreteria/index.php");
+                    exit();
+            }
+        } else {
+            // Le credenziali sono errate, mostra un messaggio di errore utilizzando JavaScript e reinderizza alla pagina di login
+            echo '<script type="text/javascript">alert("Error: Credenziali errate!");</script>';
+        }
+    }
+```
+
 # Funzioni Realizzate
 
 ## Funzioni
@@ -39,7 +82,7 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 - `get_all_exam-sessions` : restituisce tutti gli appelli di tutti gli insegnamenti presenti nel sistema 
 - `get_student_exam_enrollments` : dato l'id di uno studente, restituisce tutti gli appelli a cui è iscritto 
 - `get_exam_enrollments` : dato il codice di un appello, restituisce tutti gli studenti ad esso iscritti
-- `get_grades` : dato il codice di un appello, restituisce tutte le valutazioni ad esspo relative
+- `get_grades` : dato il codice di un appello, restituisce tutte le valutazioni ad esso relative
 - `get_grades_of_ex-students` : dato l'id di un ex studente, restituisce tutte le sue valutazioni
 - `get_grades_of_ex_students` : restituisce tutte le valutazioni di tutti gli ex studenti presenti nel sistema 
 - `get_missing_exams_for_graduation` : dato l'id di uno studente, restituisce gli esami che gli mancano al conseguimento della laurea a cui è iscritto 
@@ -87,5 +130,4 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 - `check_subscription_to_cdl` : controlla che uno studente non sia già iscritto ad un corso di laurea 
 - `non_cyclic_prerequisites_check` : controlla che non ci siano propedeuticità cicliche 
 - `check_instructor_course_limit`: controlla che il docente responsabile dell'insegnamento non sia giè responsabile di almeno tre insegnamenti
-- `check_prerequisites_before_enrollment` : controlla che siano  rispettate le propedeuticità all'iscrizione ad un'appello. 
-
+- `check_prerequisites_before_enrollment` : controlla che siano  rispettate le propedeuticità all'iscrizione ad un'appello.
