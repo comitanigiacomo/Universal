@@ -17,7 +17,7 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 ## Login
 
-Il file `login.php` si occupa di permettere all'utente di accedere al sistema, e quindi reindirizzarlo correttamente alla propria area personale. Per fare questo, una volta verificate le credenziali inserite dall'utente, questo verrà reindirizato alla propria area personale in base al suo tipo 
+Il file `login.php` si occupa di permettere all'utente di accedere al sistema, e quindi di reindirizzarlo correttamente alla propria area personale. Per fare questo, una volta verificate le credenziali inserite dall'utente, questo verrà reindirizato alla propria area personale in base al suo tipo. in caso di credenziali erratee o ancanti, il sistema non permetterà all'utente di accedervi 
 
 ```php
 if(isset($_POST["email"]) && isset($_POST["password"])) {
@@ -25,16 +25,13 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
         $password = $_POST["password"];
         $_SESSION['email'] = $email;
         
-        // Esegui la query per controllare le credenziali dell'utente
         $result = pg_query_params($conn, 'SELECT * FROM universal.utenti WHERE email = $1 AND password = crypt($2, password)', array($email, $password));
 
-        // Verifica se la query ha restituito una riga
         if (pg_num_rows($result) == 1) {
             $query_get_id = "SELECT * FROM universal.get_id($1)";
             $result_get_id = pg_query_params($conn, $query_get_id, array($_SESSION['email']));
             $row_get_id = pg_fetch_assoc($result_get_id);
             $_SESSION['id'] = $row_get_id['id'];
-            // L'utente è autorizzato, reindirizzalo alla pagina corretta
             $type = Get_type($email);
             print_r($type);
             switch ($type){
@@ -52,11 +49,24 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
                     exit();
             }
         } else {
-            // Le credenziali sono errate, mostra un messaggio di errore utilizzando JavaScript e reinderizza alla pagina di login
             echo '<script type="text/javascript">alert("Error: Credenziali errate!");</script>';
         }
     }
 ```
+
+Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità, piò o meno estese al seconda del suo tipo. 
+
+## Studente
+
+Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
+
+progetto/docs/images/homeStudent.png
+
+
+
+
+
+
 
 # Funzioni Realizzate
 

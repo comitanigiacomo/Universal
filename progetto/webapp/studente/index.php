@@ -5,24 +5,20 @@ include '../scripts/db_connection.php';
 session_start();
 
 
-// Controlla se l'utente è loggato, altrimenti reindirizza alla pagina di login
 if (!isset($_SESSION['email'])) {
     header("Location: /login.php");
     exit();
 }
-
-// Ottieni le informazioni dello studente utilizzando la funzione SQL universal.get_student
+print_r($_SESSSION);
 $query_get_student = "SELECT * FROM universal.get_student($1)";
 $result_get_student = pg_query_params($conn, $query_get_student, array($_SESSION['id']));
 $row_get_student = pg_fetch_assoc($result_get_student);
 
-// Ottieni la media dello studente
 $query_get_average = "SELECT * FROM universal.get_student_average($1)";
 $result_get_average = pg_query_params($conn, $query_get_average, array($_SESSION['id']));
 $row_get_average = pg_fetch_assoc($result_get_average);
 
 
-// Assegna le informazioni dello studente alle variabili
 $nome = $row_get_student['nome'];
 $cognome = $row_get_student['cognome'];
 $matricola = $row_get_student['matricola'];
