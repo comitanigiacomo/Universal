@@ -56,7 +56,7 @@ if (!isset($_SESSION['email'])) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='5'>Nessuna valutazione assegnata.</td></tr>";
+                        echo "<tr><td colspan='7'>Nessuna valutazione assegnata.</td></tr>";
                     }
                     ?>
                 </table>

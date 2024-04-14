@@ -254,6 +254,141 @@ La procedura svolge i seguenti passaggi:
 - Controlla se la data dell'appello è diversa dalla data odierna. In caso positivo, genera un'eccezione.
 - Inserisce l'iscrizione dello studente all'appello d'esame nella tabella `universal.iscritti`, impostando il voto come NULL.
 
+# Docenti
+
+Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispetto a quelle accessibili agli studenti. Un docente che effettua il login al sistema viene reindirizzato inizialmente ala seguente pagina: 
+
+![alt text](image-1.png)
+
+I docenti possono modificare la propria password, e gestire gli insegnamenti di cui sono responsabili, visualizzandone gli appelli, creandone di nuovi, e visualizzare gli studenti iscritti agli appelli. Infine possono visualizzare un elenco delle valutazioni che hanno assegnato 
+
+## visualizza valutazioni assegnate
+
+```sql
+CREATE OR REPLACE FUNCTION universal.get_teacher_grades(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        cognome VARCHAR(40),
+        matricola INTEGER,
+        data DATE,
+        luogo VARCHAR(40),
+        insegnamento INTEGER,
+        voto INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            u.nome,
+            u.cognome,
+            s.matricola,
+            a.data,
+            a.luogo,
+            ins.codice,
+            i.voto
+        FROM
+            universal.iscritti AS i
+            INNER JOIN universal.utenti AS u ON i.studente = u.id
+            INNER JOIN universal.insegnamenti AS ins ON i.insegnamento = ins.codice
+            INNER JOIN universal.studenti AS s ON i.studente = s.id
+            INNER JOIN universal.appelli AS a ON i.appello = a.codice
+        WHERE
+            i.voto IS NOT NULL AND  ins.docente_responsabile = _id -- Filtra solo gli insegnamenti di cui il docente è responsabile
+            AND ins.docente_responsabile = _id -- Aggiungi questa condizione per filtrare solo gli insegnamenti del docente attualmente loggato
+        ORDER BY matricola;
+    END;
+$$;
+```
+
+Questa funzione restituisce tutte le valutazioni assegnate da un docente agli studenti per gli insegnamenti di cui è responsabile.
+
+Parametri:
+- `_id`: l'ID del docente di cui si vogliono ottenere le valutazioni.
+
+La funzione filtra solo le valutazioni non NULL, ovvero gli esami valutati, relativi agli insegnamenti di cui il docente è responsabile.
+
+## Segretari
+
+I segretari sono gli utenti con maggior potere all'interno del sistema, datoche lo possono gestire completamente.
+
+Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
+
+![alt text](image-1.png)
+
+Da qui un segretario puo' come di consueto modificare la propria password, ma amche gestire studenti e docenti. 
+
+Ecco una lista delle principali funzionalita'
+
+### Visualizzare tutti i corsi di laurea 
+
+I segretari hanno la possibilita' di visualizzare tutti i corsi di laurea all'interno del sistema: 
+
+![alt text](image.png)
+
+Per ogni corso di laurea presente nel sistema un segretario e' in grado di : 
+
+- visualizzare gli insegnamenti del corso 
+- creare un nuovo corso di laurea 
+
+![alt text](image-1.png)
+
+Per ogn insegnamento invece, ogni segretario puo': 
+
+- Visualizzare gli appelli dell'insegnamento
+- modificare il responsabile dell'insegnamento
+- visualizare, se presenti, le propedeuticita' dell'insegnamento 
+
+Per ogni appello, un segretario puo' crearne di nuovio visualizzarne gli iscritti 
+
+![alt text](image-2.png)
+
+### Visualizzare tutti i docenti
+
+I segretari hanno a disposizione una schermata da cui possono gestire tutti i docenti presenti nel sistema 
+
+![alt text](image-3.png)
+
+Da qui sono quindi in grado per ogni docente di : 
+
+- Visualizzare i corsi di cui il docente e' responsabile 
+
+- visualizzare tutte le valutazioni che ha assegnato 
+
+- eliminare il docente dal sistema. In questo caso, il docente potra' essere eliminato solamente se non ci sono all'interno del sistema insegnamenti di cui e' responsabile 
+
+- modificarne la password
+
+### Visualizzare tutti gli studenti
+
+I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
+
+![alt text](image-4.png)
+
+Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
+
+![alt text](image-5.png)
+
+In particolare, per ogni studente un segretario e' in grado di : 
+
+- Visualizzare la carriera
+- Visualizzare la carriera completa
+- Visualizzare gli apelli a cui e' iscritto 
+- Iscrivere/disiscrivere uno studente ad un appello
+- Disiscrivere uno studente da un corso di laurea ( `Laureato`, `Rinuncia`)
+- Iscrivere uno studente ad un corso di laurea 
+- Visualizzare gli esami mancabti alla laurea dello studente
+- Modificare la password dello studente
+
+### Visualizzare tutti gli ex studenti 
+
+I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
+
+
+### Visualizzare tutti i segretari
+
+### Inserire un nuovo utente
+
 # Funzioni Realizzate
 
 ## Funzioni
