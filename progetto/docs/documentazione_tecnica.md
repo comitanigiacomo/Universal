@@ -60,7 +60,7 @@ Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
-progetto/docs/images/homeStudent.png
+![Home Studente](images/homeStudent.png)
 
 
 
