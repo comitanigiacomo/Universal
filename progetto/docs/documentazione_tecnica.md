@@ -15,9 +15,46 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 # Implementazioni Significative
 
+## Struttura webapp
+
+La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Ecco un esempio di come ho gestito le funzionalità: 
+
+```php
+<?php
+include '../scripts/db_connection.php';
+session_start();
+
+if (!isset($_SESSION['email'])) {
+    header("Location: /login.php");
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $vecchia_password = $_POST['old_password'];
+    $nuova_password = $_POST['new_password'];
+
+    $query_change_password = "CALL universal.change_password($1, $2, $3)";
+    $result_change_password = pg_query_params($conn, $query_change_password, array($_SESSION['id'], $vecchia_password, $nuova_password));
+
+    if (!$result_change_password) {
+        echo '<script type="text/javascript">alert("Error: Errore durante il cambio password");</script>';
+        exit;
+    }
+
+    echo '<script type="text/javascript">alert("Error: Password cambiata con successo"); </script>';
+}
+?>
+```
+
+da inserire descrizione di cose importanti dìsu come invoco le uery e come le gestisco
+
+
+
 ## Login
 
-Il file `login.php` si occupa di permettere all'utente di accedere al sistema, e quindi di reindirizzarlo correttamente alla propria area personale. Per fare questo, una volta verificate le credenziali inserite dall'utente, questo verrà reindirizato alla propria area personale in base al suo tipo. in caso di credenziali erratee o ancanti, il sistema non permetterà all'utente di accedervi 
+Il file login.php si occupa di gestire l'autenticazione degli utenti nel sistema. Quando un utente inserisce le sue credenziali e preme il pulsante di login, il sistema verifica se le credenziali sono corrette. Se sì, l'utente viene reindirizzato alla sua area personale in base al tipo di account (studente, ex-studente, docente o segretario). Se le credenziali sono errate, viene mostrato un messaggio di errore.
+
+Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità disponibili, in base al suo tipo di account.
 
 ```php
 if(isset($_POST["email"]) && isset($_POST["password"])) {
@@ -54,19 +91,166 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
     }
 ```
 
-Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità, piò o meno estese al seconda del suo tipo. 
-
 ## Studente
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
 ![Home Studente](images/homeStudent.png)
 
+ Gli studenti possono accedere a numerose funzionalità, tra cui la visualizzazione degli esami mancanti per la laurea.
 
+### Esami mancanti alla laurea
 
+Uno studente può visualizzare gli esami mancanti alla laurea. 
 
+```sql
+CREATE OR REPLACE FUNCTION universal.get_missing_exams_for_graduation(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        docente_responsabile TEXT,
+        corso_di_laurea INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            CONCAT(u.nome, ' ', u.cognome) AS nome,
+            cdl.codice
+        FROM universal.insegnamenti AS ins
+        INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
+        INNER JOIN universal.studenti AS s ON cdl.codice = s.corso_di_laurea
+        LEFT JOIN universal.iscritti AS isc ON isc.insegnamento = ins.codice AND isc.studente = _id
+        INNER JOIN universal.utenti AS u ON u.id = ins.docente_responsabile
+        WHERE (isc.voto IS NULL AND isc.appello IS NOT NULL) OR (isc.appello IS NULL)
+            AND cdl.codice = s.corso_di_laurea
+        ORDER BY ins.nome;
+    END;
+$$;
 
+```
+Questa funzione restituisce gli esami mancanti per la laurea di uno studente identificato dal suo ID.
 
+1. La funzione accetta un parametro `_id`, che rappresenta l'ID dello studente per il quale si vogliono ottenere gli esami mancanti.
+
+2. Utilizzando il parametro `_id`, la funzione esegue una query SQL che seleziona le seguenti informazioni:
+        - Il nome e la descrizione dell'esame mancante.
+        - L'anno in cui è previsto l'esame.
+        - Il nome completo del docente responsabile dell'esame.
+        - Il codice del corso di laurea relativo all'esame.
+
+3. La query include diverse operazioni di JOIN per collegare le tabelle `universal.insegnamenti`, `universal.corsi_di_laurea`, `universal.studenti`, `universal.iscritti` e `universal.utenti`, al fine di ottenere le informazioni necessarie sugli esami e sugli studenti.
+
+4. Vengono applicati i seguenti criteri per determinare gli esami mancanti per la laurea dello studente:
+        - L'esame deve essere associato al corso di laurea dello studente.
+        - Lo studente non deve avere un voto registrato per l'esame.
+
+5. Infine, la query ordina gli esami mancanti in base al loro nome.
+
+La funzione restituisce una tabella contenente le informazioni sugli esami mancanti per la laurea dello studente specificato.
+
+## Visualizza Carriera
+
+Altra funzionalità degna di nota è quella che permette ad uno studente di visualizzare la propria carriera, ovvero l'elenco di tutti gli esami che ha conseguito e le relative valuazioni 
+
+```sql
+CREATE OR REPLACE FUNCTION universal.get_partial_carrer(_id uuid)
+    RETURNS TABLE (
+        nome VARCHAR(40),
+        descrizione TEXT,
+        anno INTEGER,
+        data DATE,
+        docente_responsabile TEXT,
+        corso_di_laurea INTEGER,
+        voto INTEGER
+    )
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+        RETURN QUERY
+        SELECT DISTINCT ON (i.insegnamento)
+            ins.nome,
+            ins.descrizione,
+            ins.anno,
+            a.data,
+            CONCAT(u.nome, ' ', u.cognome) AS docente_responsabile,
+            ins.corso_di_laurea,
+            i.voto
+        FROM
+            universal.iscritti i
+            INNER JOIN universal.insegnamenti AS ins ON ins.codice = i.insegnamento
+            INNER JOIN universal.appelli AS a ON i.appello = a.codice
+            INNER JOIN universal.utenti AS u ON iNS.docente_responsabile = u.id
+        WHERE
+            i.studente = _id AND i.voto IS NOT NULL
+        ORDER BY
+            i.insegnamento,
+            i.appello DESC;
+    END;
+$$;
+```
+
+Questa funzione restituisce una tabella contenente gli esami mancanti per la laurea di uno studente identificato dal suo ID.
+
+La funzione sfrutta una query complessa per recuperare gli esami mancanti per la laurea dello studente.
+    
+- La funzione accetta un parametro `_id`, che rappresenta l'ID dello studente per il quale si vogliono ottenere gli esami mancanti.
+- Utilizza una combinazione di JOIN tra le tabelle `universal.insegnamenti`, `universal.corsi_di_laurea`, `universal.studenti`, `universal.iscritti` e `universal.utenti` per ottenere le informazioni necessarie sugli esami e sugli studenti.
+- Filtra gli esami mancanti in base ai seguenti criteri:
+    - Lo studente deve essere iscritto al corso di laurea relativo all'esame.
+    - Lo studente non deve avere un voto registrato per l'esame.
+    - Deve essere disponibile almeno un appello per l'esame.
+- Infine, ordina gli esami mancanti per nome.
+
+## Iscrizioni agli esami 
+
+Infine, uno studente può iscriversi ad un esame di un insegnamento del corso di laurea a cui è iscritto: 
+
+```sql
+CREATE OR REPLACE PROCEDURE universal.subscription(
+    _id uuid,
+    _appello INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DECLARE
+        codice_insegnamento INTEGER;
+        data_appello DATE;
+    BEGIN
+        -- Ottieni l'insegnamento relativo all'appello specificato
+        SELECT a.insegnamento, a.data INTO codice_insegnamento, data_appello
+        FROM universal.appelli AS a
+        WHERE a.codice = _appello;
+
+        -- Controlla se la data dell'appello è diversa dalla data odierna
+        IF data_appello = CURRENT_DATE THEN
+            RAISE EXCEPTION 'Non è possibile iscriversi all''appello di oggi.';
+        END IF;
+
+        -- Inserisci l'iscrizione dello studente all'appello d'esame
+        INSERT INTO universal.iscritti (appello, studente, insegnamento, voto)
+        VALUES (_appello, _id, codice_insegnamento, NULL);
+    END;
+END;
+$$;
+```
+
+Questa procedura gestisce l'iscrizione di uno studente a un determinato appello d'esame.
+
+La procedura accetta due parametri:
+    - `_id`: l'ID dello studente che si vuole iscrivere all'appello.
+    - `_appello`: il codice dell'appello d'esame a cui lo studente si vuole iscrivere.
+
+La procedura svolge i seguenti passaggi:
+    - Ottiene l'insegnamento associato all'appello specificato.
+    - Controlla se la data dell'appello è diversa dalla data odierna. In caso positivo, genera un'eccezione.
+    - Inserisce l'iscrizione dello studente all'appello d'esame nella tabella `universal.iscritti`, impostando il voto come NULL.
 
 # Funzioni Realizzate
 
