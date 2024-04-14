@@ -34,7 +34,6 @@ if (!isset($_SESSION['email'])) {
                     <th>Descrizione</th>
                     <th>Anno</th>
                     <th>Docente</th>
-                    <th>Codice</th>
                 </tr>
                 <?php
                 // Esegui la query per ottenere gli appelli degli esami a cui lo studente è attualmente iscritto
@@ -48,7 +47,6 @@ if (!isset($_SESSION['email'])) {
                     echo "<td>" . $row_get_missing_exams_for_graduation['descrizione'] . "</td>";
                     echo "<td>" . $row_get_missing_exams_for_graduation['anno'] . "</td>";
                     echo "<td>" . $row_get_missing_exams_for_graduation['docente_responsabile'] . "</td>";
-                    echo "<td>" . $row_get_missing_exams_for_graduation['corso_di_laurea'] . "</td>";
                     echo "</tr>";
                 }
                 ?>

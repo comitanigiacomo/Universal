@@ -244,13 +244,15 @@ $$;
 Questa procedura gestisce l'iscrizione di uno studente a un determinato appello d'esame.
 
 La procedura accetta due parametri:
-    - `_id`: l'ID dello studente che si vuole iscrivere all'appello.
-    - `_appello`: il codice dell'appello d'esame a cui lo studente si vuole iscrivere.
+
+- `_id`: l'ID dello studente che si vuole iscrivere all'appello.
+- `_appello`: il codice dell'appello d'esame a cui lo studente si vuole iscrivere.
 
 La procedura svolge i seguenti passaggi:
-    - Ottiene l'insegnamento associato all'appello specificato.
-    - Controlla se la data dell'appello è diversa dalla data odierna. In caso positivo, genera un'eccezione.
-    - Inserisce l'iscrizione dello studente all'appello d'esame nella tabella `universal.iscritti`, impostando il voto come NULL.
+
+- Ottiene l'insegnamento associato all'appello specificato.
+- Controlla se la data dell'appello è diversa dalla data odierna. In caso positivo, genera un'eccezione.
+- Inserisce l'iscrizione dello studente all'appello d'esame nella tabella `universal.iscritti`, impostando il voto come NULL.
 
 # Funzioni Realizzate
 
