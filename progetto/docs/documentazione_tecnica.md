@@ -46,15 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 ```
 
-da inserire descrizione di cose importanti dìsu come invoco le uery e come le gestisco
-
-
-
 ## Login
 
 Il file login.php si occupa di gestire l'autenticazione degli utenti nel sistema. Quando un utente inserisce le sue credenziali e preme il pulsante di login, il sistema verifica se le credenziali sono corrette. Se sì, l'utente viene reindirizzato alla sua area personale in base al tipo di account (studente, ex-studente, docente o segretario). Se le credenziali sono errate, viene mostrato un messaggio di errore.
 
 Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità disponibili, in base al suo tipo di account.
+
+![alt text](login.png)
 
 ```php
 if(isset($_POST["email"]) && isset($_POST["password"])) {
@@ -91,222 +89,39 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
     }
 ```
 
+# Funzionalita' webapp
+
 ## Studente
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
 ![Home Studente](images/homeStudent.png)
 
- Gli studenti possono accedere a numerose funzionalità, tra cui la visualizzazione degli esami mancanti per la laurea.
+Da qui ogni studente ha a disposizione una serie di funzionalità: 
 
-### Esami mancanti alla laurea
-
-Uno studente può visualizzare gli esami mancanti alla laurea. 
-
-```sql
-CREATE OR REPLACE FUNCTION universal.get_missing_exams_for_graduation(_id uuid)
-    RETURNS TABLE (
-        nome VARCHAR(40),
-        descrizione TEXT,
-        anno INTEGER,
-        docente_responsabile TEXT,
-        corso_di_laurea INTEGER
-    )
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT
-            ins.nome,
-            ins.descrizione,
-            ins.anno,
-            CONCAT(u.nome, ' ', u.cognome) AS nome,
-            cdl.codice
-        FROM universal.insegnamenti AS ins
-        INNER JOIN universal.corsi_di_laurea AS cdl ON ins.corso_di_laurea = cdl.codice
-        INNER JOIN universal.studenti AS s ON cdl.codice = s.corso_di_laurea
-        LEFT JOIN universal.iscritti AS isc ON isc.insegnamento = ins.codice AND isc.studente = _id
-        INNER JOIN universal.utenti AS u ON u.id = ins.docente_responsabile
-        WHERE (isc.voto IS NULL AND isc.appello IS NOT NULL) OR (isc.appello IS NULL)
-            AND cdl.codice = s.corso_di_laurea
-        ORDER BY ins.nome;
-    END;
-$$;
-
-```
-Questa funzione restituisce gli esami mancanti per la laurea di uno studente identificato dal suo ID.
-
-1. La funzione accetta un parametro `_id`, che rappresenta l'ID dello studente per il quale si vogliono ottenere gli esami mancanti.
-
-2. Utilizzando il parametro `_id`, la funzione esegue una query SQL che seleziona le seguenti informazioni:
-        - Il nome e la descrizione dell'esame mancante.
-        - L'anno in cui è previsto l'esame.
-        - Il nome completo del docente responsabile dell'esame.
-        - Il codice del corso di laurea relativo all'esame.
-
-3. La query include diverse operazioni di JOIN per collegare le tabelle `universal.insegnamenti`, `universal.corsi_di_laurea`, `universal.studenti`, `universal.iscritti` e `universal.utenti`, al fine di ottenere le informazioni necessarie sugli esami e sugli studenti.
-
-4. Vengono applicati i seguenti criteri per determinare gli esami mancanti per la laurea dello studente:
-        - L'esame deve essere associato al corso di laurea dello studente.
-        - Lo studente non deve avere un voto registrato per l'esame.
-
-5. Infine, la query ordina gli esami mancanti in base al loro nome.
-
-La funzione restituisce una tabella contenente le informazioni sugli esami mancanti per la laurea dello studente specificato.
-
-## Visualizza Carriera
-
-Altra funzionalità degna di nota è quella che permette ad uno studente di visualizzare la propria carriera, ovvero l'elenco di tutti gli esami che ha conseguito e le relative valuazioni 
-
-```sql
-CREATE OR REPLACE FUNCTION universal.get_partial_carrer(_id uuid)
-    RETURNS TABLE (
-        nome VARCHAR(40),
-        descrizione TEXT,
-        anno INTEGER,
-        data DATE,
-        docente_responsabile TEXT,
-        corso_di_laurea INTEGER,
-        voto INTEGER
-    )
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT DISTINCT ON (i.insegnamento)
-            ins.nome,
-            ins.descrizione,
-            ins.anno,
-            a.data,
-            CONCAT(u.nome, ' ', u.cognome) AS docente_responsabile,
-            ins.corso_di_laurea,
-            i.voto
-        FROM
-            universal.iscritti i
-            INNER JOIN universal.insegnamenti AS ins ON ins.codice = i.insegnamento
-            INNER JOIN universal.appelli AS a ON i.appello = a.codice
-            INNER JOIN universal.utenti AS u ON iNS.docente_responsabile = u.id
-        WHERE
-            i.studente = _id AND i.voto IS NOT NULL
-        ORDER BY
-            i.insegnamento,
-            i.appello DESC;
-    END;
-$$;
-```
-
-Questa funzione restituisce una tabella contenente gli esami mancanti per la laurea di uno studente identificato dal suo ID.
-
-La funzione sfrutta una query complessa per recuperare gli esami mancanti per la laurea dello studente.
-    
-- La funzione accetta un parametro `_id`, che rappresenta l'ID dello studente per il quale si vogliono ottenere gli esami mancanti.
-- Utilizza una combinazione di JOIN tra le tabelle `universal.insegnamenti`, `universal.corsi_di_laurea`, `universal.studenti`, `universal.iscritti` e `universal.utenti` per ottenere le informazioni necessarie sugli esami e sugli studenti.
-- Filtra gli esami mancanti in base ai seguenti criteri:
-    - Lo studente deve essere iscritto al corso di laurea relativo all'esame.
-    - Lo studente non deve avere un voto registrato per l'esame.
-    - Deve essere disponibile almeno un appello per l'esame.
-- Infine, ordina gli esami mancanti per nome.
-
-## Iscrizioni agli esami 
-
-Infine, uno studente può iscriversi ad un esame di un insegnamento del corso di laurea a cui è iscritto: 
-
-```sql
-CREATE OR REPLACE PROCEDURE universal.subscription(
-    _id uuid,
-    _appello INTEGER
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    DECLARE
-        codice_insegnamento INTEGER;
-        data_appello DATE;
-    BEGIN
-        -- Ottieni l'insegnamento relativo all'appello specificato
-        SELECT a.insegnamento, a.data INTO codice_insegnamento, data_appello
-        FROM universal.appelli AS a
-        WHERE a.codice = _appello;
-
-        -- Controlla se la data dell'appello è diversa dalla data odierna
-        IF data_appello = CURRENT_DATE THEN
-            RAISE EXCEPTION 'Non è possibile iscriversi all''appello di oggi.';
-        END IF;
-
-        -- Inserisci l'iscrizione dello studente all'appello d'esame
-        INSERT INTO universal.iscritti (appello, studente, insegnamento, voto)
-        VALUES (_appello, _id, codice_insegnamento, NULL);
-    END;
-END;
-$$;
-```
-
-Questa procedura gestisce l'iscrizione di uno studente a un determinato appello d'esame.
-
-La procedura accetta due parametri:
-
-- `_id`: l'ID dello studente che si vuole iscrivere all'appello.
-- `_appello`: il codice dell'appello d'esame a cui lo studente si vuole iscrivere.
-
-La procedura svolge i seguenti passaggi:
-
-- Ottiene l'insegnamento associato all'appello specificato.
-- Controlla se la data dell'appello è diversa dalla data odierna. In caso positivo, genera un'eccezione.
-- Inserisce l'iscrizione dello studente all'appello d'esame nella tabella `universal.iscritti`, impostando il voto come NULL.
+- Visualizzare tutti gli appelli del corso di laurea 
+- Visualizzare gli appelli di tutti i cordi presenti nel sistema 
+- Visualizzare tutti i corsi di laurea e i rispettivi insegnamenti
+- Visualizzare gli esami mancanti alla laurea 
+- Visualizzare le iscrizioni attive agli esami 
+- Visualizzare la propria carriera, intesa come l'inseme delle valutazioni finali ottenute per ogni esame dato
+- Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
 
 # Docenti
 
 Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispetto a quelle accessibili agli studenti. Un docente che effettua il login al sistema viene reindirizzato inizialmente ala seguente pagina: 
 
-![alt text](image-3.png)
+![alt text](homeTeacher.png)
 
-I docenti possono modificare la propria password, e gestire gli insegnamenti di cui sono responsabili, visualizzandone gli appelli, creandone di nuovi, e visualizzare gli studenti iscritti agli appelli. Infine possono visualizzare un elenco delle valutazioni che hanno assegnato 
+Le funzionalità a disposizione del docente sono le seguenti: 
 
-## visualizza valutazioni assegnate
-
-```sql
-CREATE OR REPLACE FUNCTION universal.get_teacher_grades(_id uuid)
-    RETURNS TABLE (
-        nome VARCHAR(40),
-        cognome VARCHAR(40),
-        matricola INTEGER,
-        data DATE,
-        luogo VARCHAR(40),
-        insegnamento INTEGER,
-        voto INTEGER
-    )
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT
-            u.nome,
-            u.cognome,
-            s.matricola,
-            a.data,
-            a.luogo,
-            ins.codice,
-            i.voto
-        FROM
-            universal.iscritti AS i
-            INNER JOIN universal.utenti AS u ON i.studente = u.id
-            INNER JOIN universal.insegnamenti AS ins ON i.insegnamento = ins.codice
-            INNER JOIN universal.studenti AS s ON i.studente = s.id
-            INNER JOIN universal.appelli AS a ON i.appello = a.codice
-        WHERE
-            i.voto IS NOT NULL AND  ins.docente_responsabile = _id -- Filtra solo gli insegnamenti di cui il docente è responsabile
-            AND ins.docente_responsabile = _id -- Aggiungi questa condizione per filtrare solo gli insegnamenti del docente attualmente loggato
-        ORDER BY matricola;
-    END;
-$$;
-```
-
-Questa funzione restituisce tutte le valutazioni assegnate da un docente agli studenti per gli insegnamenti di cui è responsabile.
-
-Parametri:
-- `_id`: l'ID del docente di cui si vogliono ottenere le valutazioni.
-
-La funzione filtra solo le valutazioni non NULL, ovvero gli esami valutati, relativi agli insegnamenti di cui il docente è responsabile.
+- Modificare la propria password 
+- Visualizzare gli insegnamenti di cui il docente è responsabile
+- Per ogni insegnamento, visualizzarne gli appelli
+- Per ogni appello, visualizzare gli studenti iscritti
+- Assegnare una valutazione ad uno studente iscritto ad un appello
+- creare unnuovo appello
+- Visualizzare tutte le valutazioni assegnate 
 
 ## Segretari
 
@@ -314,7 +129,7 @@ I segretari sono gli utenti con maggior potere all'interno del sistema, datoche 
 
 Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
 
-![alt text](image-6.png)
+![alt text](homeSecretary.png)
 
 Da qui un segretario puo' come di consueto modificare la propria password, ma amche gestire studenti e docenti. 
 
@@ -382,12 +197,16 @@ In particolare, per ogni studente un segretario e' in grado di :
 
 ### Visualizzare tutti gli ex studenti 
 
-I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
+I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
 
 ### Visualizzare tutti i segretari
 
 ### Inserire un nuovo utente
+
+Infine, I segretari hanno la possibilità di inserire un nuovo utente all'interno del sistema, specificandone il nome, il cognome, il tipo e la password
+
+![alt text](createUser.png)
 
 # Funzioni Realizzate
 

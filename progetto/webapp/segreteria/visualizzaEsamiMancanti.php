@@ -37,7 +37,6 @@ if (!isset($_SESSION['email'])) {
                     <th>Descrizione</th>
                     <th>Anno</th>
                     <th>Docente</th>
-                    <th>Codice</th>
                 </tr>
                 <?php
  
@@ -50,7 +49,6 @@ if (!isset($_SESSION['email'])) {
                     echo "<td>" . $row_get_missing_exams_for_graduation['descrizione'] . "</td>";
                     echo "<td>" . $row_get_missing_exams_for_graduation['anno'] . "</td>";
                     echo "<td>" . $row_get_missing_exams_for_graduation['docente_responsabile'] . "</td>";
-                    echo "<td>" . $row_get_missing_exams_for_graduation['corso_di_laurea'] . "</td>";
                     echo "</tr>";
                 }
                 ?>

@@ -20,9 +20,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["voto"])) {
     $result_insert_grade = pg_query_params($conn, $query_insert_grade, array($id_studente, $id_docente, $codice_appello, $voto));
 
     if ($result_insert_grade) {
-        echo '<script type="text/javascript">alert("Valutazione inserita correttamente"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Valutazione inserita correttamente"); window.location = "./visualizzaIscritti.php";</script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore durante l\'inserimento della valutazione"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Errore durante l\'inserimento della valutazione"); window.location = "./visualizzaIscritti.php";</script>';
     }
 
 }

@@ -56,7 +56,7 @@ if (!isset($_SESSION['email'])) {
                             echo "<td>
                             <form method='post' action='visualizzaCarriera.php'>
                                 <input type='hidden' name='id_studente' value='" . $row_get_all_exstudents['id'] . "' />
-                                <button type='submit'>VisualizzaCarriera.php</button>
+                                <button type='submit'>VisualizzaCarriera</button>
                             </form>
                             <form method='post' action='./visualizzaCarrieraCompleta.php'>
                                 <input type='hidden' name='id_studente' value='" . $row_get_all_exstudents['id'] . "' />
