@@ -1,5 +1,13 @@
 Giacomo Comitani, Matricola 986596
 
+TO DO : 
+
+- ristrutturazione database
+- non posso visualizzare uno studente nell'iscrizione ad un appello, se questo è gia iscritto
+- mettere possibilità di inserire numeri all'interno dei nomi dei corsi 
+- manuale utente
+- README
+
 - [Database](#database)
 
 - [Implementazioni Significative](#implementazioni-significative)
@@ -9,8 +17,8 @@ Giacomo Comitani, Matricola 986596
     - [Aggiornamento automatico delle relazioni tra le tabelle degli utenti](#aggiornamento-automatico-delle-relazioni-tra-le-tabelle-degli-utenti)
     - [genera email utente](#generazione-email-utente)
     - [eliminazione di uno studente](#eliminazione-di-uno-studente)
+    - [storico valutazioni](#storico-delle-valutazioni)
     - [controllo propedeuticità](#controllo-delle-propedeuticità)
-    - [storico valutazioni](#storico-valutazioni)
     - [struttura webapp](#struttura-webapp)
     - [login](#login)
 
@@ -238,13 +246,81 @@ Questa procedura assicura che tutte le informazioni relative allo studente venga
 
 ## Storico delle valutazioni
 
-
+Nel sistema, le valutazioni degli studenti sono memorizzate nella relazione "`iscritti`". Questo significa che ogni voto che uno studente riceve durante la sua permanenza all'università rimane registrato, senza mai essere cancellato. Questo consente di mantenere un registro storico completo delle prestazioni degli studenti, sia durante il periodo in cui sono attivi che dopo aver lasciato l'università. Quindi, anche quando diventano ex studenti, le loro valutazioni rimangono intatte, fornendo un'istantanea accurata del loro rendimento accademico nel corso degli anni.
 
 
 ## controllo delle propedeuticità 
 
-trigger piu controllo ricorsivo delle propedeuticità cicliche
+Per quanto riguarda il controllo delle propedeuticità degli insegnamenti, ho implementato due differenti trigger
 
+- `Controllo delle propedeuticità prima dell'iscrizione`: Questo trigger viene attivato quando uno studente si iscrive a un esame. Il suo compito è assicurarsi che lo studente abbia soddisfatto tutte le propedeuticità necessarie per l'insegnamento a cui desidera iscriversi. Se una propedeuticità è richiesta per l'esame e lo studente non l'ha ancora completata, viene generato un errore e l'iscrizione dello studente non viene consentita.
+
+```sql
+-- CONTROLLA CHE L'ISCRIZIONE DI UNO STUDENTE AD UN APPELLO RISPETTI LE PROPEDEUTICITÀ
+CREATE OR REPLACE FUNCTION check_prerequisites_before_enrollment()
+RETURNS TRIGGER AS $$
+DECLARE
+    prereq_count INTEGER;
+BEGIN
+    -- Controlla se ci sono insegnamenti correlati all'appello che richiedono propedeuticità
+    SELECT COUNT(*) INTO prereq_count
+    FROM universal.propedeutico p
+    WHERE p.insegnamento = NEW.insegnamento;
+
+    -- Se ci sono propedeuticità richieste
+    IF prereq_count > 0 THEN
+        -- Controlla se lo studente soddisfa le propedeuticità necessarie
+        SELECT COUNT(*) INTO prereq_count
+        FROM universal.propedeutico p
+        WHERE p.insegnamento = NEW.insegnamento
+        AND p.propedeuticità NOT IN (
+            SELECT i.insegnamento
+            FROM universal.iscritti i
+            WHERE i.studente = NEW.studente
+        );
+
+        -- Se lo studente non soddisfa le propedeuticità richieste, genera un errore
+        IF prereq_count > 0 THEN
+            RAISE EXCEPTION 'Lo studente non soddisfa le propedeuticità necessarie per questo appello.';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+- `Controllo delle propedeuticità non cicliche`: Questo trigger si occupa di garantire che non ci siano cicli nelle propedeuticità degli insegnamenti. In altre parole, controlla che non ci siano loop o dipendenze circolari tra gli insegnamenti. Ad esempio, se l'insegnamento A richiede l'insegnamento B come propedeuticità, e l'insegnamento B richiede l'insegnamento A, si verifica una situazione ciclica. Se viene rilevata una ciclicità, il trigger genera un errore per prevenire situazioni indesiderate.
+
+```sql
+CREATE OR REPLACE FUNCTION non_cyclic_prerequisites_check()
+RETURNS TRIGGER AS $$
+DECLARE
+    current_insegnamento_id INTEGER;
+    propedeuticita_id INTEGER;
+    is_cyclic BOOLEAN := FALSE;
+BEGIN
+    current_insegnamento_id := NEW.insegnamento;
+    propedeuticita_id := NEW.propedeuticità;
+
+    -- Verifica ricorsiva delle propedeuticità per rilevare ciclicità
+    WHILE propedeuticita_id IS NOT NULL AND NOT is_cyclic LOOP
+        IF current_insegnamento_id = propedeuticita_id THEN
+            is_cyclic := TRUE;
+        END IF;
+
+        SELECT propedeuticità INTO propedeuticita_id
+        FROM universal.propedeutico
+        WHERE insegnamento = propedeuticita_id;
+    END LOOP;
+
+    IF is_cyclic THEN
+        RAISE EXCEPTION 'Ciclicità rilevata tra le propedeuticità.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
 ## Struttura webapp
 
 
