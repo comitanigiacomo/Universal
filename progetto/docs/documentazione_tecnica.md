@@ -80,15 +80,102 @@ Nel processo di inserimento di un nuovo utente nel sistema, ho implementato una 
 
 - `Utilizzo di algoritmi robusti`: La funzione crypt utilizza algoritmi di crittografia robusti, come `Blowfish`, per crittografare le password. Questi algoritmi sono stati progettati per offrire un elevato livello di sicurezza e resistenza agli attacchi crittografici.
 
-## Trigger aggiorna tabella / elimina utente dopo cancellazione
+## Aggiornamento autamatico delle relazioni tra le tabelle Studenti, Docenti e Segretari, e la tabella utenti
 
-## Genera email, inserisci numero progressivo dopo cognome
+All'interno del sistema, ho implementato due trigger per gestire l'aggiornamento automatico delle relazioni tra le tabelle degli utenti principali (`Studenti`, `Docenti` e `Segretari`) e la tabella degli utenti stessi.
 
-## Procedura student to ex student
+Il primo trigger, chiamato `aggiorna_tabella_trigger`, entra in azione dopo l'inserimento di un nuovo utente nella tabella `universal.utenti`. 
+
+```sql
+CREATE OR REPLACE FUNCTION aggiorna_tabella()
+RETURNS TRIGGER AS $$
+DECLARE
+    new_matricola INTEGER;
+BEGIN
+    IF NEW.tipo = 'studente' THEN
+        new_matricola := genera_matricola();
+        INSERT INTO universal.studenti (id, matricola, corso_di_laurea)
+        VALUES (NEW.id, new_matricola,NULL);
+    ELSIF NEW.tipo = 'docente' THEN
+        INSERT INTO universal.docenti (id, ufficio)
+        VALUES (NEW.id, 'edificio 74');
+    ELSIF NEW.tipo = 'segretario' THEN
+        INSERT INTO universal.segretari (id, sede)
+        VALUES (NEW.id, 'sede centrale');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+Questo trigger valuta il tipo del nuovo utente inserito e aggiorna di conseguenza le tabelle correlate. Ad esempio, se viene inserito un nuovo studente, il trigger assegna una matricola al nuovo studente utilizzando la procedura `genera_matricola` e inserisce tutti i dati relativi allo studente nella tabella `universal.studenti`. Lo stesso vale per `docenti` e `segretari`, che vengono inseriti nelle rispettive tabelle `universal.docenti` e `universal.segretari`.
+
+Il secondo trigger, denominato `elimina_utente_dopo_cancellazione`, entra in azione quando un utente viene eliminato da una delle tabelle degli utenti principali. 
+
+```sql
+CREATE OR REPLACE FUNCTION elimina_utente_dopo_cancellazione()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM universal.utenti WHERE id = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+```
+Questo trigger si occupa di eliminare anche l'utente corrispondente dalla tabella `universal.utenti`. Ad esempio, se viene eliminato un docente dalla tabella `universal.docenti`, il trigger si assicura che l'utente associato venga cancellato anche dalla tabella degli utenti.
+
+In questo modo, i trigger garantiscono che le relazioni tra le tabelle degli utenti principali e la tabella degli utenti rimangano sempre aggiornate e coerenti, automatizzando il processo di gestione e mantenendo l'`integrità dei dati` all'interno del sistema.
+
+## Generazione email utente
+
+All'interno del sistema, ho implementato la funzione `universal.get_email` per generare gli indirizzi email degli utenti in modo automatico. Questa funzione accetta come input il `nome`, il `cognome` e il `tipo` di utente e restituisce un'email univoca in base alle regole specificate.
+
+```sql
+ CREATE OR REPLACE FUNCTION universal.get_email(nome VARCHAR(255), cognome VARCHAR(255), tipo TipoUtente)
+    RETURNS VARCHAR(100)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    email_generata VARCHAR(255);
+    suffix_count INT;
+BEGIN
+    SELECT COUNT(*)
+    INTO suffix_count
+    FROM universal.utenti
+    WHERE utenti.nome = $1 AND utenti.cognome = $2;
+
+    IF suffix_count > 0 THEN
+        email_generata := nome || '.' || cognome || suffix_count || '@' ||
+                           CASE
+                               WHEN tipo = 'studente' THEN 'studenti.universal.it'
+                               WHEN tipo = 'docente' THEN 'docenti.universal.it'
+                               WHEN tipo = 'segretario' THEN 'segretari.universal.it'
+                           END;
+    ELSE
+        email_generata := nome || '.' || cognome || '@' ||
+                           CASE
+                               WHEN tipo = 'studente' THEN 'studenti.universal.it'
+                               WHEN tipo = 'docente' THEN 'docenti.universal.it'
+                               WHEN tipo = 'segretario' THEN 'segretari.universal.it'
+                           END;
+    END IF;
+    RETURN email_generata;
+END;
+$$;
+```
+Di seguito una spiegazione più dettagliata delle caratteristiche della funzione: 
+
+- `Generazione automatica dell'email`: La funzione si occupa di generare automaticamente l'indirizzo email degli utenti in base al loro nome, cognome e tipo. Utilizzando queste informazioni, l'email viene costruita in modo coerente e standardizzato.
+
+- `Gestione delle omonimie`: Nel caso di omonimie tra gli utenti, la funzione gestisce questa situazione inserendo un suffisso numerico incrementale nell'email dopo il cognome. Questo assicura che ogni indirizzo email sia univoco all'interno del sistema, anche in presenza di utenti con lo stesso nome e cognome.
+
+- `Selezione del dominio dell'email`: A seconda del tipo di utente (`studente`, `docente` o `segretario`), la funzione seleziona automaticamente il dominio corretto per l'indirizzo email. Ad esempio, gli studenti riceveranno un'email con il dominio "studenti.universal.it", mentre i docenti avranno un'email con il dominio "docenti.universal.it".
+
+In questo modo, la funzione `universal.get_email` semplifica il processo di generazione degli indirizzi email degli utenti all'interno del sistema, garantendo che ogni email sia univoca, coerente e conforme alle specifiche del sistema.
+
+## Eliminazione di uno studente
 
 ## controllo delle propedeuticità 
 
-## Storico Valutazioni
+## Storico delle valutazioni
 
 ## Struttura webapp
 
