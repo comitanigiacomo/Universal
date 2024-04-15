@@ -200,7 +200,7 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
 - Visualizzare tutti gli appelli del corso di laurea al quale è iscritto
 
 <p align="center">
-  <img src="images/visualizzaAppelliStudente" alt="alt text">
+  <img src="images/visualizzaAppelliStudente.png" alt="alt text">
 </p>
 
 - Visualizzare gli appelli di tutti i cordi presenti nel sistema 
@@ -246,7 +246,7 @@ Le funzionalità a disposizione del docente sono le seguenti:
 - Visualizzare gli insegnamenti di cui il docente è responsabile
 
 <p align="center">
-  <img src="images/visualizzaCorsiDiCuiSeiResponsabile.png" alt="alt text">
+  <img src="images/visualizzaCordiDiCuiSeiResponsabile.png" alt="alt text">
 </p>
 
 - Per ogni insegnamento, visualizzarne gli appelli
