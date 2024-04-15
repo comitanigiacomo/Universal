@@ -7,6 +7,7 @@ TO DO :
 - mettere possibilità di inserire numeri all'interno dei nomi dei corsi 
 - manuale utente
 - README
+- Controllare dove ci sono i codici dei Cdl
 
 - [Database](#database)
 
@@ -322,7 +323,6 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 ## Struttura webapp
-
 
 La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Per comprendere meglio la struttura dei file che compongono la web app, ecco un esempio di come ho implementato il cambio password:
 
