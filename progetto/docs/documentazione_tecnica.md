@@ -5,10 +5,10 @@ Giacomo Comitani, Matricola 986596
 - [Implementazioni Significative](#implementazioni-significative)
 
     - [uuid](#uuid)
-    - [crypt](#crypt)
-    - [trigger](#trigger-aggiorna-tabella--elimina-utente-dopo-cancellazione)
-    - [genera mail](#genera-email-inserisci-numero-progressivo-dopo-cognome)
-    - [student to exstudent](#procedura-student-to-ex-student)
+    - [password crittografate](#password-crittografate)
+    - [Aggiornamento automatico delle relazioni tra le tabelle degli utenti](#aggiornamento-automatico-delle-relazioni-tra-le-tabelle-degli-utenti)
+    - [genera email utente](#generazione-email-utente)
+    - [eliminazione di uno studente](#eliminazione-di-uno-studente)
     - [controllo propedeuticità](#controllo-delle-propedeuticità)
     - [storico valutazioni](#storico-valutazioni)
     - [struttura webapp](#struttura-webapp)
@@ -43,7 +43,7 @@ Un altro vantaggio degli `UUID` riguarda la privacy degli utenti. Essi non forni
 
 In conclusione, l'utilizzo di `UUID` come chiavi primarie per identificare gli utenti nel sistema offre una maggiore unicità, sicurezza e privacy rispetto alle soluzioni basate su codici numerici semplici
 
-## Crypt
+## Password crittografate
 
 Un segretario, è in grado di inserire un nuovo utente all'interno del sistema, chiamando la seguente procedura: 
 
@@ -80,7 +80,7 @@ Nel processo di inserimento di un nuovo utente nel sistema, ho implementato una 
 
 - `Utilizzo di algoritmi robusti`: La funzione crypt utilizza algoritmi di crittografia robusti, come `Blowfish`, per crittografare le password. Questi algoritmi sono stati progettati per offrire un elevato livello di sicurezza e resistenza agli attacchi crittografici.
 
-## Aggiornamento autamatico delle relazioni tra le tabelle Studenti, Docenti e Segretari, e la tabella utenti
+## Aggiornamento automatico delle relazioni tra le tabelle degli utenti
 
 All'interno del sistema, ho implementato due trigger per gestire l'aggiornamento automatico delle relazioni tra le tabelle degli utenti principali (`Studenti`, `Docenti` e `Segretari`) e la tabella degli utenti stessi.
 
@@ -173,9 +173,77 @@ In questo modo, la funzione `universal.get_email` semplifica il processo di gene
 
 ## Eliminazione di uno studente
 
-## controllo delle propedeuticità 
+Un segretario è in grado di eliminare un utente presente nel sistema, chiamando la procedura `universal.studentToExStudent`:
+```sql
+CREATE OR REPLACE PROCEDURE universal.studentToExStudent (
+    _id uuid,
+    _motivo TipoMotivo
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    matricola_ex_studente INTEGER;
+    cdl INTEGER;
+    new_email TEXT;
+    old_email TEXT;
+BEGIN
+    SELECT matricola INTO matricola_ex_studente
+    FROM universal.studenti
+    WHERE id = _id;
+
+    SELECT corso_di_laurea INTO cdl
+    FROM universal.studenti
+    WHERE id = _id;
+
+    SELECT email into old_email
+    FROM universal.utenti AS u
+    WHERE u.id = _id;
+
+    -- Costruisci il nuovo indirizzo email dell'ex studente
+    new_email := REPLACE(old_email, '@studenti.', '@exstudenti.');
+
+    -- Aggiorna il tipo dell'utente a 'ex_studente' e modifica l'email
+    UPDATE universal.utenti
+    SET tipo = 'ex_studente', email = new_email
+    WHERE id = _id;
+
+    -- Elimina la riga associata all'ex studente dalla tabella degli ex studenti
+    DELETE FROM universal.ex_studenti
+    WHERE id = _id;
+
+    -- Inserisce i dati dell'ex studente nella tabella degli ex studenti
+    INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
+    VALUES (_id, _motivo, matricola_ex_studente, cdl);
+
+    -- Rimuove lo studente dalla tabella studenti
+    DELETE FROM universal.studenti
+    WHERE id = _id;
+
+END;
+$$;
+```
+La trasformazione di uno studente in un ex studente all'interno del sistema, comporta diversi passaggi che coinvolgono l'aggiornamento delle tabelle e la modifica dei dati dell'utente. Ecco una spiegazione più dettagliata della procedura:
+
+- `Recupero dei dati dello studente`: La procedura inizia recuperando la `matricola` dello studente e il `corso di laurea` associato utilizzando l'`ID` dello studente passato come input.
+
+- `Generazione della nuova email`: Viene generato un nuovo `indirizzo email` per l'ex studente sostituendo il dominio "`studenti.universal.it`" con "`exstudenti.universal.it`". Questo viene fatto utilizzando la funzione `REPLACE` per sostituire il suffisso del dominio nell'indirizzo email originale.
+
+- `Aggiornamento dei dati dell'utente`: L'utente viene quindi aggiornato cambiando il suo tipo da "`studente`" a "`ex_studente`" e sostituendo l'indirizzo email con quello generato per gli ex studenti.
+
+- `Inserimento dei dati nell'archivio degli ex studenti`: I dati dello studente vengono quindi inseriti nella tabella `universal.ex_studenti`, che funge da archivio per gli ex studenti. Questo include l'`ID` dello studente, la `matricola`, il `motivo` del passaggio allo stato di ex studente e il `corso di laurea` associato.
+
+- `Rimozione dell'utente dalle tabelle degli studenti`: Infine, lo studente viene rimosso dalla tabella `universal.studenti`.
+
+Questa procedura assicura che tutte le informazioni relative allo studente vengano correttamente aggiornate e archiviate quando diventa un ex studente, garantendo l'integrità e la coerenza dei dati nel sistema.
 
 ## Storico delle valutazioni
+
+
+
+
+## controllo delle propedeuticità 
+
+trigger piu controllo ricorsivo delle propedeuticità cicliche
 
 ## Struttura webapp
 
