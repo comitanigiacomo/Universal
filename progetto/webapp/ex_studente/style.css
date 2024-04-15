@@ -86,7 +86,7 @@ button:hover {
 .sfondo {
     height: 90%;
     display: flex;
-    background-image: url('/background.png'); 
+    background-image: url('/progetto/webapp/background.png'); 
     justify-content: center;
     align-items: center;
 }

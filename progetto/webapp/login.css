@@ -47,7 +47,7 @@ footer a {
     flex-direction: column;
     justify-content: center; /* Centra il contenuto verticalmente */
     align-items: center; /* Centra il contenuto orizzontalmente */
-    background-image: url('background.png'); 
+    background-image: url('/progetto/webapp/background.png'); 
 }
 
 /* Rettangolo Centrale */

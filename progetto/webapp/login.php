@@ -63,7 +63,7 @@
 <html>
 <head>
     <title>Autenticazione</title>
-    <link rel="stylesheet" type="text/css" href="/progtto/webapp/login.css">
+    <link rel="stylesheet" type="text/css" href="/progetto/webapp/login.css">
     <meta charset="utf-8">
 </head>
 <body>
