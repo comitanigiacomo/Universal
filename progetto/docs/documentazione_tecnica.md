@@ -99,12 +99,26 @@ Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente
 
 Da qui ogni studente ha a disposizione una serie di funzionalità: 
 
-- Visualizzare tutti gli appelli del corso di laurea 
+- Visualizzare tutti gli appelli del corso di laurea al quale è iscritto
+
+![alt text](visualizzaAppelliStudente.png)
+
 - Visualizzare gli appelli di tutti i cordi presenti nel sistema 
+
 - Visualizzare tutti i corsi di laurea e i rispettivi insegnamenti
+
+![alt text](visualizzaCdl.png)
+
 - Visualizzare gli esami mancanti alla laurea 
+
+![alt text](visualizzaEsamiMancanti.png)
+
 - Visualizzare le iscrizioni attive agli esami 
+
+![alt text](visualizzaIscrizioni.png)
+
 - Visualizzare la propria carriera, intesa come l'inseme delle valutazioni finali ottenute per ogni esame dato
+
 - Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
 
 # Docenti
@@ -116,12 +130,28 @@ Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispet
 Le funzionalità a disposizione del docente sono le seguenti: 
 
 - Modificare la propria password 
+
+![alt text](changePassword.png)
+
 - Visualizzare gli insegnamenti di cui il docente è responsabile
+
+![alt text](visualizzaCorsiDiCuiSeiResponsabile.png)
+
 - Per ogni insegnamento, visualizzarne gli appelli
+
+![alt text](visualizzaInsegnamentiCorso.png)
+
 - Per ogni appello, visualizzare gli studenti iscritti
+
+![alt text](visualizzaIscrittiAppello.png)
+
 - Assegnare una valutazione ad uno studente iscritto ad un appello
-- creare unnuovo appello
+
+- creare un nuovo appello
+
 - Visualizzare tutte le valutazioni assegnate 
+
+![alt text](visualizzaValutazioniAssegnate.png)
 
 ## Segretari
 
@@ -199,8 +229,11 @@ In particolare, per ogni studente un segretario e' in grado di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
+![alt text](visualizzaExStudenti.png)
 
 ### Visualizzare tutti i segretari
+
+![alt text](visualizzaSegretari.png)
 
 ### Inserire un nuovo utente
 
