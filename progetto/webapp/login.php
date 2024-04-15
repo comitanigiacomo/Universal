@@ -63,7 +63,7 @@
 <html>
 <head>
     <title>Autenticazione</title>
-    <link rel="stylesheet" type="text/css" href="login.css">
+    <link rel="stylesheet" type="text/css" href="/progtto/webapp/login.css">
     <meta charset="utf-8">
 </head>
 <body>
@@ -72,7 +72,7 @@
     <div class="contenitore">
         <div class="rettangolo-centrale">
             <div class="logo">
-                <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+                <a class="nav-link" id="uni" aria-current="page" href="/progetto/webapp/login.php">Universal</a>
                 <br><br>
             </div>
             <form method="POST" action="">
