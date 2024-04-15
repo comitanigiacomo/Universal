@@ -212,7 +212,9 @@ I segretari hanno a disposizione una schermata da cui possono visualizzare tutti
 
 Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
 
+<center>
 ![alt text](images/gestisciStudente.png)
+</center>
 
 In particolare, per ogni studente un segretario e' in grado di : 
 
@@ -229,7 +231,7 @@ In particolare, per ogni studente un segretario e' in grado di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
-![alt text](images/visualizzaExStudenti.png)
+![alt text](images/visualizzaexStudenti.png)
 
 ### Visualizzare tutti i segretari
 
