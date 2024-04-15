@@ -17,7 +17,7 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 ## Struttura webapp
 
-La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Ecco un esempio di come ho gestito le funzionalità: 
+La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Ecco un esempio di come ho gestito una pagina della webapp. 
 
 ```php
 <?php
@@ -45,6 +45,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 ```
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modifica Password</title>
+    <link rel="stylesheet" type="text/css" href="./changePassword.css">
+</head>
+<body>
+    <div class="sfondo">
+        <div class="contenitore">
+            <div class="logo">
+                    <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+                    <br>
+                    <br>
+                    <br>
+            </div>
+            <br>
+            <br>
+            <div class="home">
+                    <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
+            </div>
+            <br>
+            <br>
+            <div class="titolo"><h3>Modifica Password</h3></div>
+            <div class="modifica">
+                <form method="POST" action="">
+                    <div class="form-group">
+                        <input id="old_password" class="form-control input-lg typeahead top-buffer-s" name="old_password" type="password" class="form-control bg-transparent rounded-0 my-4" placeholder="Old Password" aria-label="Email" aria-describedby="basic-addon1">
+                        <br>
+                        <input id="new_password" class="form-control input-lg pass" name="new_password" type="password" class="form-control  bg-transparent rounded-0 my-4" placeholder="New Password" aria-label="Username" aria-describedby="basic-addon1">
+                        <br>
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">Change</button>
+                    </div>
+                </form> 
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div>
+            Università degli studi di Universal
+        </div>
+        <div>
+            Made by Jack during the small hours
+        </div>
+        <div>
+            <a href="https://google.com">Assistenza Universal</a>
+            <br>
+        </div>
+    </footer>
+</body>
+</html>
+```
+
+Questo codice si occupa di gestire la pagina che permette ad un utente di cambiare la propria password. 
 
 ## Login
 
@@ -179,7 +234,7 @@ Le funzionalità a disposizione del docente sono le seguenti:
 
 ## Segretari
 
-I segretari sono gli utenti con maggior potere all'interno del sistema, datoche lo possono gestire completamente.
+I segretari sono gli utenti con maggior potere all'interno del sistema, dato che lo possono gestire completamente.
 
 Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
 
@@ -187,59 +242,43 @@ Inizialmente vengono reindirizzati alla pagina iniziale della loro arera persona
   <img src="images/homeSecretary.png" alt="alt text">
 </p>
 
-Da qui un segretario puo' come di consueto modificare la propria password, ma amche gestire studenti e docenti. 
+Da qui un segretario puo'come di consueto modificare la propria password, ma anche gestire studenti e docenti. 
 
-Ecco una lista delle principali funzionalita'
+Ecco una lista delle principali funzionalita':
 
-### Visualizzare tutti i corsi di laurea 
-
-I segretari hanno la possibilita' di visualizzare tutti i corsi di laurea all'interno del sistema: 
+- Visualizzare tutti i corsi di laurea 
 
 <p align="center">
   <img src="images/visualizzaCdlSegretario.png" alt="alt text">
 </p>
 
-Per ogni corso di laurea presente nel sistema un segretario e' in grado di : 
-
-- visualizzare gli insegnamenti del corso 
-- creare un nuovo corso di laurea 
+- Visualizzare gli insegnamenti del corso 
+- Creare un nuovo corso di laurea 
 
 <p align="center">
-  <img src="images/gestisciCdlegretario.png" alt="alt text">
+  <img src="images/gestisciCdlSegretario.png" alt="alt text">
 </p>
-Per ogn insegnamento invece, ogni segretario puo': 
 
 - Visualizzare gli appelli dell'insegnamento
-- modificare il responsabile dell'insegnamento
-- visualizare, se presenti, le propedeuticita' dell'insegnamento 
-
-Per ogni appello, un segretario puo' crearne di nuovio visualizzarne gli iscritti 
+- Modificare il responsabile dell'insegnamento
+- Visualizzare, se presenti, le propedeuticita' dell'insegnamento 
+- Creare nuovi appelli e visualizzarne gli studenti iscritti
 
 <p align="center">
   <img src="images/gestisciAppelliSegretario.png" alt="alt text">
 </p>
-
-### Visualizzare tutti i docenti
-
-I segretari hanno a disposizione una schermata da cui possono gestire tutti i docenti presenti nel sistema 
+- Visualizzare tutti i docenti
 
 <p align="center">
   <img src="images/visualizzaDocenti.png" alt="alt text">
 </p>
 
-Da qui sono quindi in grado per ogni docente di : 
-
 - Visualizzare i corsi di cui il docente e' responsabile 
-
-- visualizzare tutte le valutazioni che ha assegnato 
-
-- eliminare il docente dal sistema. In questo caso, il docente potra' essere eliminato solamente se non ci sono all'interno del sistema insegnamenti di cui e' responsabile 
-
-- modificarne la password
-
-### Visualizzare tutti gli studenti
-
-I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
+- Visualizzare tutte le valutazioni che il docente ha assegnato 
+- Eliminare il docente dal sistema. In questo caso, il docente potra' essere eliminato solamente se non ci sono all'interno del sistema insegnamenti di cui e' responsabile 
+- Modificare la password del docente
+- Visualizzare tutti gli studenti
+- Visualizzare tutti gli studenti presenti nel sistema
 
 <p align="center">
   <img src="images/visualizzaStudenti.png" alt="alt text">
@@ -262,20 +301,17 @@ In particolare, per ogni studente un segretario e' in grado di :
 - Visualizzare gli esami mancabti alla laurea dello studente
 - Modificare la password dello studente
 
-### Visualizzare tutti gli ex studenti 
-
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
 <p align="center">
   <img src="images/visualizzaexStudenti.png" alt="alt text">
 </p>
 
-### Visualizzare tutti i segretari
+I segretari possono poi visualizzare tutti i segretari presenti nel sistema 
 
 <p align="center">
   <img src="images/visualizzaSegretari.png" alt="alt text">
 </p>
-### Inserire un nuovo utente
 
 Infine, I segretari hanno la possibilità di inserire un nuovo utente all'interno del sistema, specificandone il nome, il cognome, il tipo e la password
 
