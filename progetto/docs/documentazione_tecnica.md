@@ -34,9 +34,17 @@ TO DO :
 
 # Database
 
-Lo schema ER è disponibile cliccando [qui](images/ER.png)
+## Schema ER
 
-Lo schema logico è disponibile cliccando [qui](images/SchemaLogico.png)
+<p align="center">
+  <img src="images/ER.png" alt="alt text">
+</p>
+
+## Schema logico
+
+<p align="center">
+  <img src="images/SchemaLogico.png" alt="alt text">
+</p>
 
 # Implementazioni Significative
 
