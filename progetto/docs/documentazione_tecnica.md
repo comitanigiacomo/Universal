@@ -169,14 +169,14 @@ Ecco una lista delle principali funzionalita'
 
 I segretari hanno la possibilita' di visualizzare tutti i corsi di laurea all'interno del sistema: 
 
-![alt text](image.png)
+![alt text](visualizzaCdlSegretario.png)
 
 Per ogni corso di laurea presente nel sistema un segretario e' in grado di : 
 
 - visualizzare gli insegnamenti del corso 
 - creare un nuovo corso di laurea 
 
-![alt text](image-1.png)
+![alt text](gestisciCdlSegretario.png)
 
 Per ogn insegnamento invece, ogni segretario puo': 
 
@@ -186,13 +186,13 @@ Per ogn insegnamento invece, ogni segretario puo':
 
 Per ogni appello, un segretario puo' crearne di nuovio visualizzarne gli iscritti 
 
-![alt text](image-2.png)
+![alt text](gestisciAppelliSegretario.png)
 
 ### Visualizzare tutti i docenti
 
 I segretari hanno a disposizione una schermata da cui possono gestire tutti i docenti presenti nel sistema 
 
-![alt text](image-3.png)
+![alt text](visualizzaDocenti.png)
 
 Da qui sono quindi in grado per ogni docente di : 
 
@@ -208,11 +208,11 @@ Da qui sono quindi in grado per ogni docente di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
 
-![alt text](image-4.png)
+![alt text](visualizzaStudenti.png)
 
 Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
 
-![alt text](image-5.png)
+![alt text](gestisciStudente.png)
 
 In particolare, per ogni studente un segretario e' in grado di : 
 
