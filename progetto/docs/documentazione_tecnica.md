@@ -9,6 +9,8 @@ TO DO :
 - README
 - Controllare dove ci sono i codici dei Cdl
 
+# Indice
+
 - [Database](#database)
 
 - [Implementazioni Significative](#implementazioni-significative)
@@ -25,9 +27,9 @@ TO DO :
 
 - [Funzionalità Web App](#funzionalita-webapp)
 
-    - [Studente](#studente)
+    - [Studente](#studenti)
     - [Docente](#docenti)
-    - [Segretari](#segretari)
+    - [Segretario](#segretari)
 
 - [Funzioni Realizzate](#funzioni-realizzate)
 
@@ -471,7 +473,7 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
 
 # Funzionalita' webapp
 
-## Studente
+## Studenti
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
