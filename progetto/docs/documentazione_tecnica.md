@@ -212,9 +212,9 @@ I segretari hanno a disposizione una schermata da cui possono visualizzare tutti
 
 Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
 
-<center>
-![alt text](images/gestisciStudente.png)
-</center>
+<p align="center">
+  <img src="images/gestisciStudente.png" alt="alt text">
+</p>
 
 In particolare, per ogni studente un segretario e' in grado di : 
 
