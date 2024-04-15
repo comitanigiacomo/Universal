@@ -52,7 +52,9 @@ Il file login.php si occupa di gestire l'autenticazione degli utenti nel sistema
 
 Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità disponibili, in base al suo tipo di account.
 
-![alt text](images/login.png)
+<p align="center">
+  <img src="images/login.png" alt="alt text">
+</p>
 
 ```php
 if(isset($_POST["email"]) && isset($_POST["password"])) {
@@ -95,27 +97,37 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
-![Home Studente](images/homeStudent.png)
+<p align="center">
+  <img src="images/homeStudent.png" alt="alt text">
+</p>
 
 Da qui ogni studente ha a disposizione una serie di funzionalità: 
 
 - Visualizzare tutti gli appelli del corso di laurea al quale è iscritto
 
-![alt text](images/visualizzaAppelliStudente.png)
+<p align="center">
+  <img src="images/visualizzaAppelliStudente" alt="alt text">
+</p>
 
 - Visualizzare gli appelli di tutti i cordi presenti nel sistema 
 
 - Visualizzare tutti i corsi di laurea e i rispettivi insegnamenti
 
-![alt text](images/visualizzaCdl.png)
+<p align="center">
+  <img src="images/visualizzaCdl.png" alt="alt text">
+</p>
 
 - Visualizzare gli esami mancanti alla laurea 
 
-![alt text](images/visualizzaEsamiMancanti.png)
+<p align="center">
+  <img src="images/visualizzaEsamiMancanti.png" alt="alt text">
+</p>
 
 - Visualizzare le iscrizioni attive agli esami 
 
-![alt text](images/visualizzaIscrizioni.png)
+<p align="center">
+  <img src="images/visualizzaIscrizioni.png" alt="alt text">
+</p>
 
 - Visualizzare la propria carriera, intesa come l'inseme delle valutazioni finali ottenute per ogni esame dato
 
@@ -125,25 +137,35 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
 
 Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispetto a quelle accessibili agli studenti. Un docente che effettua il login al sistema viene reindirizzato inizialmente ala seguente pagina: 
 
-![alt text](images/homeTeacher.png)
+<p align="center">
+  <img src="images/homeTeacher.png" alt="alt text">
+</p>
 
 Le funzionalità a disposizione del docente sono le seguenti: 
 
 - Modificare la propria password 
 
-![alt text](images/changePassword.png)
+<p align="center">
+  <img src="images/changePassword.png" alt="alt text">
+</p>
 
 - Visualizzare gli insegnamenti di cui il docente è responsabile
 
-![alt text](images/visualizzaCorsiDiCuiSeiResponsabile.png)
+<p align="center">
+  <img src="images/visualizzaCorsiDiCuiSeiResponsabile.png" alt="alt text">
+</p>
 
 - Per ogni insegnamento, visualizzarne gli appelli
 
-![alt text](images/visualizzaInsegnamentiCorso.png)
+<p align="center">
+  <img src="images/visualizzaInsegnamentiCorso.png" alt="alt text">
+</p>
 
 - Per ogni appello, visualizzare gli studenti iscritti
 
-![alt text](images/visualizzaIscrittiAppello.png)
+<p align="center">
+  <img src="images/visualizzaIscrittiAppello.png" alt="alt text">
+</p>
 
 - Assegnare una valutazione ad uno studente iscritto ad un appello
 
@@ -151,7 +173,9 @@ Le funzionalità a disposizione del docente sono le seguenti:
 
 - Visualizzare tutte le valutazioni assegnate 
 
-![alt text](images/visualizzaValutazioniAssegnate.png)
+<p align="center">
+  <img src="images/visualizzaValutazioniAssegnate.png" alt="alt text">
+</p>
 
 ## Segretari
 
@@ -159,7 +183,9 @@ I segretari sono gli utenti con maggior potere all'interno del sistema, datoche 
 
 Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
 
-![alt text](images/homeSecretary.png)
+<p align="center">
+  <img src="images/homeSecretary.png" alt="alt text">
+</p>
 
 Da qui un segretario puo' come di consueto modificare la propria password, ma amche gestire studenti e docenti. 
 
@@ -169,15 +195,18 @@ Ecco una lista delle principali funzionalita'
 
 I segretari hanno la possibilita' di visualizzare tutti i corsi di laurea all'interno del sistema: 
 
-![alt text](images/visualizzaCdlSegretario.png)
+<p align="center">
+  <img src="images/visualizzaCdlSegretario.png" alt="alt text">
+</p>
 
 Per ogni corso di laurea presente nel sistema un segretario e' in grado di : 
 
 - visualizzare gli insegnamenti del corso 
 - creare un nuovo corso di laurea 
 
-![alt text](images/gestisciCdlSegretario.png)
-
+<p align="center">
+  <img src="images/gestisciCdlegretario.png" alt="alt text">
+</p>
 Per ogn insegnamento invece, ogni segretario puo': 
 
 - Visualizzare gli appelli dell'insegnamento
@@ -186,13 +215,17 @@ Per ogn insegnamento invece, ogni segretario puo':
 
 Per ogni appello, un segretario puo' crearne di nuovio visualizzarne gli iscritti 
 
-![alt text](images/gestisciAppelliSegretario.png)
+<p align="center">
+  <img src="images/gestisciAppelliSegretario.png" alt="alt text">
+</p>
 
 ### Visualizzare tutti i docenti
 
 I segretari hanno a disposizione una schermata da cui possono gestire tutti i docenti presenti nel sistema 
 
-![alt text](images/visualizzaDocenti.png)
+<p align="center">
+  <img src="images/visualizzaDocenti.png" alt="alt text">
+</p>
 
 Da qui sono quindi in grado per ogni docente di : 
 
@@ -208,7 +241,9 @@ Da qui sono quindi in grado per ogni docente di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli studenti presenti nel sistema
 
-![alt text](images/visualizzaStudenti.png)
+<p align="center">
+  <img src="images/visualizzaStudenti.png" alt="alt text">
+</p>
 
 Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
 
@@ -231,17 +266,22 @@ In particolare, per ogni studente un segretario e' in grado di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
-![alt text](images/visualizzaexStudenti.png)
+<p align="center">
+  <img src="images/visualizzaexStudenti.png" alt="alt text">
+</p>
 
 ### Visualizzare tutti i segretari
 
-![alt text](images/visualizzaSegretari.png)
-
+<p align="center">
+  <img src="images/visualizzaSegretari.png" alt="alt text">
+</p>
 ### Inserire un nuovo utente
 
 Infine, I segretari hanno la possibilità di inserire un nuovo utente all'interno del sistema, specificandone il nome, il cognome, il tipo e la password
 
-![alt text](images/createUser.png)
+<p align="center">
+  <img src="images/createUser.png" alt="alt text">
+</p>
 
 # Funzioni Realizzate
 
