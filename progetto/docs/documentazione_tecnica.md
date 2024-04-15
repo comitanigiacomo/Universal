@@ -17,7 +17,7 @@ Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
 
 ## Struttura webapp
 
-La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Ecco un esempio di come ho gestito una pagina della webapp. 
+La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Per comprendere meglio la struttura dei file che compongono la web app, ecco un esempio di come ho implementato il cambio password:
 
 ```php
 <?php
@@ -99,7 +99,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </html>
 ```
 
-Questo codice si occupa di gestire la pagina che permette ad un utente di cambiare la propria password. 
+La pagina di modifica della password è fondamentale per garantire la sicurezza e il controllo degli account degli utenti. Quando un utente accede alla pagina, il sistema verifica immediatamente se la sessione è attiva. Se l'utente non ha effettuato l'accesso, viene reindirizzato alla pagina di login, proteggendo così l'accesso non autorizzato.
+
+Una volta che l'utente è autenticato, può procedere con la modifica della password. Questo avviene tramite un semplice modulo HTML che richiede all'utente di inserire la `vecchia password` e la `nuova password` desiderata. Una volta inviato il modulo, i dati vengono elaborati tramite `PHP`. Questa parte del codice si occupa di connettersi al database e di eseguire la procedura `universal.change_password`. Questo passaggio garantisce che la nuova password venga correttamente memorizzata e associata all'account dell'utente.
+
+È importante notare che il sistema è progettato con un'attenzione particolare alla sicurezza. Utilizzo il metodo `pg_query_params()` per eseguire le query SQL, il che protegge efficacemente dalle minacce di SQL injection.
+
+Infine, il sistema fornisce un feedback all'utente sia in caso di successo che di errore. Se il cambio password va a buon fine, viene mostrato un messaggio di conferma. In caso contrario, viene visualizzato un messaggio d'errore.
+
+Tutte le altre pagine della web app seguono un approccio simile nella struttura e nell'implementazione delle funzionalità.
 
 ## Login
 
