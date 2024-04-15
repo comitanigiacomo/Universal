@@ -4,6 +4,22 @@ Giacomo Comitani, Matricola 986596
 
 - [Implementazioni Significative](#implementazioni-significative)
 
+    - [uuid](#uuid)
+    - [crypt](#crypt)
+    - [trigger](#trigger-aggiorna-tabella--elimina-utente-dopo-cancellazione)
+    - [genera mail](#genera-email-inserisci-numero-progressivo-dopo-cognome)
+    - [student to exstudent](#procedura-student-to-ex-student)
+    - [controllo propedeuticità](#controllo-delle-propedeuticità)
+    - [storico valutazioni](#storico-valutazioni)
+    - [struttura webapp](#struttura-webapp)
+    - [login](#login)
+
+- [Funzionalità Web App](#funzionalita-webapp)
+
+    - [Studente](#studente)
+    - [Docente](#docenti)
+    - [Segretari](#segretari)
+
 - [Funzioni Realizzate](#funzioni-realizzate)
 
 
@@ -27,7 +43,10 @@ Lo schema logico è disponibile cliccando [qui](images/SchemaLogico.png)
 
 ## controllo delle propedeuticità 
 
+## Storico Valutazioni
+
 ## Struttura webapp
+
 
 La Webapp è composta da numerosi file `php` composti da una parte `HTML` che si occupa di dare struttura alla pagina, e una parte `php` che le conferisce delle funzionalità specifiche. Per comprendere meglio la struttura dei file che compongono la web app, ecco un esempio di come ho implementato il cambio password:
 
