@@ -9,11 +9,23 @@ Giacomo Comitani, Matricola 986596
 
 # Database
 
-Lo schema ER è disponibile cliccando [qui](ER.png)
+Lo schema ER è disponibile cliccando [qui](images/ER.png)
 
-Lo schema logico è disponibile cliccando [qui](./SchemaLogico.png)
+Lo schema logico è disponibile cliccando [qui](images/SchemaLogico.png)
 
 # Implementazioni Significative
+
+## UUID
+
+## Crypt
+
+## Trigger aggiorna tabella / elimina utente dopo cancellazione
+
+## Genera email, inserisci numero progressivo dopo cognome
+
+## Procedura student to ex student
+
+## controllo delle propedeuticità 
 
 ## Struttura webapp
 
