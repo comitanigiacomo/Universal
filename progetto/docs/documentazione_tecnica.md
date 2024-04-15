@@ -33,7 +33,52 @@ Lo schema logico è disponibile cliccando [qui](images/SchemaLogico.png)
 
 ## UUID
 
+Nel progettare il sistema di gestione, ho optato per l'utilizzo degli `UUID`, o Universal Unique Identifier, come chiavi primarie per identificare gli utenti in modo univoco all'interno del sistema. Questa scelta è stata motivata da diversi vantaggi rispetto alle soluzioni tradizionali basate su codici numerici.
+
+Gli `UUID` sono progettati per essere universalmente univoci, rendendo estremamente improbabile che due `UUID` generati da macchine diverse in momenti diversi siano identici. Questo assicura che ogni utente abbia un identificatore univoco nel sistema, eliminando il rischio di collisioni di chiavi primarie.
+
+Oltre alla loro unicità, gli `UUID` offrono una maggiore sicurezza. Poiché non seguono uno schema prevedibile come i numeri incrementali, gli `UUID` sono meno vulnerabili agli attacchi basati sulla prevedibilità delle chiavi primarie.
+
+Un altro vantaggio degli `UUID` riguarda la privacy degli utenti. Essi non forniscono alcuna informazione sulla sequenza o sull'ordine in cui sono stati generati, garantendo un certo livello di anonimato per gli utenti nel sistema. Questo è cruciale per preservare la privacy e la sicurezza delle informazioni degli utenti.
+
+In conclusione, l'utilizzo di `UUID` come chiavi primarie per identificare gli utenti nel sistema offre una maggiore unicità, sicurezza e privacy rispetto alle soluzioni basate su codici numerici semplici
+
 ## Crypt
+
+Un segretario, è in grado di inserire un nuovo utente all'interno del sistema, chiamando la seguente procedura: 
+
+```sql
+CREATE OR REPLACE PROCEDURE universal.insert_utente(
+    nome VARCHAR(40),
+    cognome VARCHAR(40),
+    tipo TipoUtente,
+    password VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    email VARCHAR(255);
+    crypt_password VARCHAR(255);
+BEGIN
+    -- Verifica che la password soddisfi i vincoli prima della crittografia
+    IF LENGTH(password) != 8 OR NOT (password ~ '.*[!@#$%^&*()-_+=].*') THEN
+        RAISE EXCEPTION 'La password deve essere lunga 8 caratteri e contenere almeno un carattere speciale.';
+    END IF;
+
+    email := universal.get_email(nome, cognome, tipo);
+    crypt_password := crypt(password, gen_salt('bf'));
+    INSERT INTO universal.utenti (nome, cognome, tipo, email, password)
+    VALUES (nome, cognome, tipo, email, crypt_password);
+END;
+$$;
+```
+Nel processo di inserimento di un nuovo utente nel sistema, ho implementato una procedura denominata `insert_utente`, la quale si occupa di diversi compiti, tra cui la crittografia delle password degli utenti prima di memorizzarle nel database. Questa crittografia è gestita tramite la funzione `crypt`, per sfruttare i seguenti passaggi:
+
+- `Sicurezza dei dati sensibili`: Crittografare le password degli utenti prima di memorizzarle nel database è fondamentale per garantire la sicurezza dei dati sensibili. Utilizzando la funzione `crypt`, le password vengono trasformate in una stringa crittografata, rendendole inaccessibili anche agli amministratori di database.
+
+- `Protezione contro accessi non autorizzati`: La crittografia delle password garantisce che, anche nel caso in cui il database venga compromesso, le password degli utenti rimangano al sicuro e non siano facilmente decifrabili dagli attaccanti. Questo aggiunge un ulteriore strato di protezione contro accessi non autorizzati al sistema.
+
+- `Utilizzo di algoritmi robusti`: La funzione crypt utilizza algoritmi di crittografia robusti, come `Blowfish`, per crittografare le password. Questi algoritmi sono stati progettati per offrire un elevato livello di sicurezza e resistenza agli attacchi crittografici.
 
 ## Trigger aggiorna tabella / elimina utente dopo cancellazione
 
