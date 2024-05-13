@@ -53,7 +53,7 @@ $result_get_exam_sessions = pg_query_params($conn, $query_get_exam_sessions, arr
     <div class="sfondo">
         <div class="contenitore">
             <div class="logo">
-                <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+                <a class="nav-link" id="uni" aria-current="page" href="../login.php">Universal</a>
                 <br><br>
             </div>
             <br>

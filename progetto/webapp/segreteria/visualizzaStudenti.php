@@ -4,7 +4,7 @@ session_start();
 
 // Controlla se l'utente è loggato, altrimenti reindirizza alla pagina di login
 if (!isset($_SESSION['email'])) {
-    header("Location: /login.php");
+    header("Location: ../login.php");
     exit();
 }
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_studente"])) {
     <div class="sfondo">
         <div class="contenitore">
             <div class="logo">
-                <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+                <a class="nav-link" id="uni" aria-current="page" href="../login.php">Universal</a>
                 <br><br>
             </div>
             <br>
