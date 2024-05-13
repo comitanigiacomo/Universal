@@ -68,8 +68,8 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
                         <th>Azioni</th>
                     </tr>
                     <?php
-                    $query_get_secretaries = "SELECT * FROM universal.get_secretaries()";
-                    $result_get_secretaries = pg_query($conn, $query_get_secretaries);
+                    $query_get_secretaries = "SELECT * FROM universal.get_secretaries($1)";
+                    $result_get_secretaries = pg_query_params($conn, $query_get_secretaries, array($_POST['session_id']));
 
                     if ($result_get_secretaries && pg_num_rows($result_get_secretaries) > 0) {
                         while ($row_get_secretaries = pg_fetch_assoc($result_get_secretaries)) {
