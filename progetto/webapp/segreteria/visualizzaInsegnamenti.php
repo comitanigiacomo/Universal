@@ -60,6 +60,7 @@ $id_cdl =$_POST['codice_CdL'];
                                 </form>
                                 <form method='post' action='./modificaResponsabileCorso.php'>
                                     <input type='hidden' name='codice_insegnamento' value='" . $row_get_teaching_of_cdl['codice'] . "' />
+                                    <input type='hidden' name='responsabile' value='" . $row_get_teaching_of_cdl['id_responsabile'] . "' />
                                     <button type='submit'>Modifica Responsabile Del Corso</button>
                                 </form>
                                 <form method='post' action='./visualizzaPropedeuticità.php'>

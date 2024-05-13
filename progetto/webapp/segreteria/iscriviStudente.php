@@ -18,9 +18,9 @@ if (isset($_POST['id_studente'])) {
     $result_subscription = pg_query_params($conn, $query_subscription, array($id_studente, $codice_appello));
 
     if ($result_subscription) {
-        echo '<script type="text/javascript">alert("Studente iscritto correttamente");  window.location = "./iscriviStudente.php"; </script>';
+        echo '<script type="text/javascript">alert("Studente iscritto correttamente");  window.location = "./index.php"; </script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore nell\'iscrizione dello studente");  window.location = "./iscriviStudente.php";  </script>';
+        echo '<script type="text/javascript">alert("Errore nell\'iscrizione dello studente");  window.location = "./index.php";  </script>';
     } 
 }
 
