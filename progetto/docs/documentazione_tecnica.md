@@ -657,21 +657,14 @@ Infine, I segretari hanno la possibilità di inserire un nuovo utente all'intern
 - `get_ex_student` : restituisce un'ex studente dato il suo id 
 - `get_secretary` : restituisce un segretario dato il suo id 
 - `get_secretaries` : restituisce tutti i segretari presenti nel sistema 
-- `get_degree_courses` : restituisce tutti i corsi di laurera presenti nel sistema 
-- `get_degree_course` : restituisce un corso di laurea dato il suo codice 
 - `get-email` : genera una nuova email per un utente. In caso di omonimia aggiunge un suffisso numerico incrementale alla fine del cognome dell'utente
-- `get_teaching` : restituisce tutti gli insegnamenti presenti nel sistema
 - `get_teaching_of-cdl` : dato il codice di un corso di laurea presente nel sistema, restituisce tutti gli insegnamenti del corso
 - `get_exam-sessions` : dato il codice di un insegnamento, ne restituisce tutti gli appelli presenti nel sistema
 - `get_all_exam-sessions` : restituisce tutti gli appelli di tutti gli insegnamenti presenti nel sistema 
 - `get_student_exam_enrollments` : dato l'id di uno studente, restituisce tutti gli appelli a cui è iscritto 
 - `get_exam_enrollments` : dato il codice di un appello, restituisce tutti gli studenti ad esso iscritti
-- `get_grades` : dato il codice di un appello, restituisce tutte le valutazioni ad esso relative
-- `get_grades_of_ex-students` : dato l'id di un ex studente, restituisce tutte le sue valutazioni
-- `get_grades_of_ex_students` : restituisce tutte le valutazioni di tutti gli ex studenti presenti nel sistema 
 - `get_missing_exams_for_graduation` : dato l'id di uno studente, restituisce gli esami che gli mancano al conseguimento della laurea a cui è iscritto 
 - `get_teaching_activity_of_professor` : dato l'id di un docente, restituisce tutti gli insegnamenti di cui è responsabile
-- `get_students_enrolled_in_teaching_appointments` : dato l'id di un docente, restituisce tutti gli studenti iscritti ad appelli degli insegnamenti di cui il docente è responsabile
 - `get_teacher_grades` : dato l'id di un docente, restituisce tutte le valutazioni da lui assegnate
 - `get_all_teaching_appointments_for_student_degree` : dato l'id di uno studente, restituisce tutti gli appelli di tutti gli insegnamenti del corso di laurea a cui è iscritto 
 - `get_student_grades` : dato l'id di uno studente, restituisce tutte le sue valutazioni
@@ -687,7 +680,6 @@ Infine, I segretari hanno la possibilità di inserire un nuovo utente all'intern
 
 - `studentToExStudent` : trasforma uno studente in un ex studente, aggiornando correttamente le tabelle del sistema
 - `insert_utente` : dato il nome, il cognome, la password e il tipo, inserisce un nuovo utente nel sistema
-- `delete_utente` : dato l'id di un utente presente nel sistema, lo elimina
 - `insert_degree_course` : inserisce un corso di laurea nel sistema 
 - `insert_teaching` : inserisce un insegnamento nel sistema 
 - `insert_exam_session` : inserisce un appello di un insegnamento presente nel sistema
@@ -697,7 +689,6 @@ Infine, I segretari hanno la possibilità di inserire un nuovo utente all'intern
 - `change_password` : modifica la password di un utente presente nel sistema 
 - `unsubscribe_from_exam_appointment` : disiscrive uno studente dall'appello di un insegnamento 
 - `unsubscribe_from_exam_appointment` : disiscrive uno studente da un appello presente nel sistema 
-- `unsubscribe_to-cdl` : disiscrive uno studente da un corso di laurea presente nel sistema 
 - `create_exam_session` : crea un appello d'esame di un insegnamento
 - `delete_exam_session` : cancella l'appello d'esame di un insegnamento
 - `change_course_responsible_teacher` : modifica il docente responsabile di un insegnamento
