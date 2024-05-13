@@ -37,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <br>
                 <br>
                 <br>
+                <a class="nav-link" id="home" aria-current="page" href="./index.php">Home</a>
         </div>
         <br>
         <br>

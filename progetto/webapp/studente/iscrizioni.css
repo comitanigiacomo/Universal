@@ -119,13 +119,20 @@ button:hover {
     font-size: 37px; /* Dimensione del testo */
     font-weight: bold; /* Grassetto */
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    text-align: center;
 }
 
 .logo a {
     text-decoration: none;
     color : black;
 }
+.logo #home {
+    font-size: 30px; /* Rimpicciolisci la dimensione del testo */
+    margin-top: 15px;
+}
+
 .logo a:hover {
     color: #007bff; /* Cambia colore al passaggio del mouse */
     transition: 0.3s;
