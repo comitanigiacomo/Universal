@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="sfondo">
         <div class="contenitore">
         <div class="logo">
-                <a class="nav-link" id="uni" aria-current="page" href="/login.php">Universal</a>
+                <a class="nav-link" id="uni" aria-current="page" href="../login.php">Universal</a>
                 <br>
                 <br>
                 <br>
