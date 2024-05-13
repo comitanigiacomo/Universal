@@ -14,7 +14,7 @@ if (!isset($_SESSION['email'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Appelli Del Corso</title>
+    <title>Esami mancanti alla laurea</title>
     <link rel="stylesheet" type="text/css" href="./iscrizioni.css">
 </head>
 <body>
@@ -26,7 +26,7 @@ if (!isset($_SESSION['email'])) {
         </div>
         <br>
         <br>
-        <div class="titolo"><h1>Appelli Del Corso</h1></div>
+        <div class="titolo"><h1>Esami mancanti alla laurea</h1></div>
         <div class="tabella">
             <table>
                 <tr>
