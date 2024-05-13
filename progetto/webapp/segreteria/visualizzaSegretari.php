@@ -17,9 +17,9 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
     $result_change_secretary_office = pg_query_params($conn, $query_change_secretary_office, array($id_segretario, $nuova_sede));
 
     if ($result_change_secretary_office) {
-        echo '<script type="text/javascript">alert("Sede cambiata correttamente"); </script>';
+        echo '<script type="text/javascript">alert("Sede cambiata correttamente"); window.location = "./index.php"; ; </script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore durante Il cambio sede")</script>';
+        echo '<script type="text/javascript">alert("Errore durante Il cambio sede"); window.location = "./index.php";</script>';
     }
 
 } else if (isset($_POST["id_segretario2"]) && $_SERVER["REQUEST_METHOD"] == "POST") {

@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crea_appello"])) {
     if ($result_create_exam_session) {
         // Appello creato con successo
         // Esegui le azioni necessarie, ad esempio reindirizzamento o visualizzazione di un messaggio di successo
-        echo '<script>alert("Nuovo appello creato con successo!");</script>';
+        echo '<script>alert("Nuovo appello creato con successo!");window.location = "./index.php";</script>';
     } else {
         // Errore durante la creazione dell'appello
          echo "Errore nell'esecuzione della query: " . pg_last_error($conn);
