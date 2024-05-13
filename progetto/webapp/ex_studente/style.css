@@ -117,7 +117,7 @@ button:hover {
     flex: 1;
 }
 
-.logo {
+.logo{
     font-size: 37px; /* Dimensione del testo */
     font-weight: bold; /* Grassetto */
     display: flex;

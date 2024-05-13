@@ -39,6 +39,10 @@ $matricola = $row_get_ex_student['matricola'];
 <body>
     <div class='sfondo'>
         <div class="contenitore">
+        <div class="logo">
+                <a class="nav-link" id="uni" aria-current="page" href="../login.php">Universal</a>
+                <br><br>
+            </div>
         <div class="benvenuto">
             <h2>Ex Studenti Universal</h2>
         </div>
