@@ -24,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crea_appello"])) {
     $result_create_exam_session = pg_query_params($conn, $query_create_exam_session, array($responsabile, $data, $luogo, $codice_insegnamento));
 
     if ($result_create_exam_session) {
-        echo '<script>alert("Nuovo appello creato con successo!");</script>';
+        echo '<script>alert("Nuovo appello creato con successo!"); window.location = "./index.php"</script>';
     } else {
-         echo "Errore nell'esecuzione della query: " . pg_last_error($conn);
+         echo '<script>alert("Errore nella creazione dell\'appello!"); window.location = "./index.php"</script>';
     }
 }
 

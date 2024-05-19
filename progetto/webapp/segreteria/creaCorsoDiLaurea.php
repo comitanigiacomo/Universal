@@ -20,11 +20,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nome'])) {
 
     // Controllo del risultato della query
     if (!$result_insert_degree_course) {
-        echo '<script type="text/javascript">alert("Errore durante la creazione del CdL");</script>';
+        echo '<script type="text/javascript">alert("Errore durante la creazione del CdL"); window.location = "./index.php";</script>';
         exit;
     }
 
-    echo '<script type="text/javascript">alert("CdL creato con successo"); </script>';
+    echo '<script type="text/javascript">alert("CdL creato con successo"); window.location = "./index.php";</script>';
 }
 ?>
 
