@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!$result_insert_utente) {
         $error_message = pg_last_error($conn);
-        echo '<script type="text/javascript">alert("Errore durante la creazione dell\'utente: ' . $error_message . '"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Errore durante la creazione dell\'utente"); window.location = "./index.php";</script>';
     } else {
         echo '<script type="text/javascript">alert("Utente creato con successo"); window.location = "./index.php"; </script>';
     }

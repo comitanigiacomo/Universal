@@ -56,12 +56,11 @@ $sede = $row_get_secretary['sede'];
         </div>
         <div class="funzioni">
 
+        <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
         <form id="form_visualizza_segretari" method="post" action="./visualizzaSegretari.php">
             <input type="hidden" name="session_id" value="<?php echo $_SESSION['id']; ?>">
             <button type="submit">Visualizza Tutti I Segretari</button>
         </form>
-
-            <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
             <button onclick="window.location.href='./visualizzaCorsiDiLaurea.php'">Visualizza Tutti I Corsi Di Laurea</button>
             <button onclick="window.location.href='./visualizzaDocenti.php'">Visualizza Tutti I Docenti</button>
             <button onclick="window.location.href='./visualizzaStudenti.php'">Visualizza Tutti Gli Studenti</button>

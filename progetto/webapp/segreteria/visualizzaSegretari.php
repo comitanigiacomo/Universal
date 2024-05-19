@@ -31,9 +31,9 @@ if (isset($_POST["id_segretario"]) && $_SERVER["REQUEST_METHOD"] == "POST" ) {
     $result_delete_secretary = pg_query_params($conn, $query_delete_secretary, array($id_segretario2));
 
     if ($result_delete_secretary) {
-        echo '<script type="text/javascript">alert("Segretario eliminato correttamente"); </script>';
+        echo '<script type="text/javascript">alert("Segretario eliminato correttamente"); window.location = "./index.php"; </script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore durante l\'eliminazione")</script>';
+        echo '<script type="text/javascript">alert("Errore durante l\'eliminazione");  window.location = "./index.php";</script>';
     }
 
 }
