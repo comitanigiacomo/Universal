@@ -20,9 +20,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codice_prop'])) {
     $result_insert_propaedeutics = pg_query_params($conn, $query_insert_propaedeutics, array($codice_corso, $codice_prop));
 
     if ($result_insert_propaedeutics) {
-        echo '<script type="text/javascript">alert("Propedeuticità inserito correttamente");</script>';
+        echo '<script type="text/javascript">alert("Propedeuticità inserito correttamente"); window.location = "./index.php";</script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore nell\'inserimento della propedeuticità");</script>';
+        echo '<script type="text/javascript">alert("Errore nell\'inserimento della propedeuticità"); window.location = "./index.php";</script>';
     }
 
 }
