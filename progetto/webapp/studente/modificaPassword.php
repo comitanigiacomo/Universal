@@ -15,11 +15,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $result_change_password = pg_query_params($conn, $query_change_password, array($_SESSION['id'], $vecchia_password, $nuova_password));
 
     if (!$result_change_password) {
-        echo '<script type="text/javascript">alert("Error: Errore durante il cambio password");</script>';
+        echo '<script type="text/javascript">alert("Error: Errore durante il cambio password"); window.location = "./modificaPassword.php";</script>';
         exit;
     }
 
-    echo '<script type="text/javascript">alert("Error: Password cambiata con successo"); </script>';
+    echo '<script type="text/javascript">alert("Error: Password cambiata con successo");window.location = "./modificaPassword.php"; </script>';
 }
 ?>
 

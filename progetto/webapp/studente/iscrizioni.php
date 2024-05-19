@@ -19,9 +19,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
     $result_unsubscribe = pg_query_params($conn, $query_unsubscribe, array($userId, $appelloId));
 
     if ($result_unsubscribe) {
-        echo '<script type="text/javascript">alert("Disiscrizione effettuata con successo"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Disiscrizione effettuata con successo"); window.location = "./iscrizioni.php";</script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore durante la disiscrizione"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Errore durante la disiscrizione"); window.location = "./iscrizioni.php";</script>';
     }
 
 }

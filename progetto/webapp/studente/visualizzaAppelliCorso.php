@@ -18,9 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["appelloId"])) {
     $result_subscribe = pg_query_params($conn, $query_subscribe, array($userId, $appelloId));
 
     if ($result_subscribe) {
-        echo '<script type="text/javascript">alert("Iscrizione effettuata con successo"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Iscrizione effettuata con successo"); window.location = "./visualizzaAppelliCorso.php";</script>';
     } else {
-        echo '<script type="text/javascript">alert("Errore durante l\'iscrizione"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Errore durante l\'iscrizione"); window.location = "./visualizzaAppelliCorso.php";</script>';
     }
 }
 
