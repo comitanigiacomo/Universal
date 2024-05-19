@@ -67,7 +67,6 @@ $matricola = $row_get_ex_student['matricola'];
         <div class="funzioni">
 
             <button onclick="window.location.href='./modificaPassword.php'">Modifica Password</button>
-            <button onclick="window.location.href='./visualizzaLaureePassate.php'">Visualizza Lauree Passate</button>
             <button onclick="window.location.href='./visualizzaCarriera.php'">Visualizza Carriera</button>
             <button onclick="window.location.href='./visualizzaCarrieraCompleta.php'">Visualizza Carriera Completa</button>
 
