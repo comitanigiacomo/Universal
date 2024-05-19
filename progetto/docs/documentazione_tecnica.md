@@ -40,6 +40,17 @@ TO DO :
   <img src="images/ER.png" alt="alt text">
 </p>
 
+- **utenti**: (id, nome, cognome, tipo, email, password)
+- **docenti**: (id, ufficio)
+- **studenti**: (id, matricola, corso_di_laurea)
+- **segretari**: (id, sede)
+- **ex_studenti**: (id, matricola, motivo, corso_di_laurea)
+- **corsi_di_laurea**: (codice, nome, tipo, descrizione)
+- **insegnamenti**: (codice, nome, descrizione, anno, docente_responsabile, corso_di_laurea)
+- **appelli**: (codice, data, luogo, insegnamento)
+- **iscritti**: (appello, studente, insegnamento, voto)
+- **propedeutico**: (insegnamento, propedeuticità)
+
 ## Schema logico
 
 <p align="center">
