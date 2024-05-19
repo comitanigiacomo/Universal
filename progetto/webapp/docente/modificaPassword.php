@@ -20,11 +20,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Controllo del risultato della query
     if (!$result_change_password) {
-        echo '<script type="text/javascript">alert("Error: Errore durante il cambio password"); window.location = "./index.php";</script>';
+        echo '<script type="text/javascript">alert("Error: Errore durante il cambio password"); window.location = "./modificaPassword.php";</script>';
         exit();
     }
 
-    echo '<script type="text/javascript">alert("Error: Password cambiata con successo"); window.location = "./index.php";</script>';
+    echo '<script type="text/javascript">alert("Error: Password cambiata con successo"); window.location = "./modificaPassword.php";</script>';
 }
 ?>
 

@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crea_appello"])) {
         echo '<script>alert("Nuovo appello creato con successo!");window.location = "./index.php";</script>';
     } else {
         // Errore durante la creazione dell'appello
-         echo "Errore nell'esecuzione della query: " . pg_last_error($conn);
+         echo '<script>alert("Errore nella creazione dell\'appello!");window.location = "./index.php";</script>';
     }
 }
 
