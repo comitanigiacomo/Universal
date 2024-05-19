@@ -23,7 +23,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER aggiorna_tabella_trigger
-BEFORE INSERT ON universal.utenti
+AFTER INSERT ON universal.utenti
 FOR EACH ROW
 EXECUTE FUNCTION aggiorna_tabella();
 

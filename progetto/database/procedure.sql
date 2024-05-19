@@ -1,6 +1,7 @@
 -- PROCEDURE
 
 -- TRASFORMA UNO STUDENTE IN UN EX_STUDENTE
+--ok
 CREATE OR REPLACE PROCEDURE universal.studentToExStudent (
     _id uuid,
     _motivo TipoMotivo
@@ -33,6 +34,10 @@ BEGIN
     SET tipo = 'ex_studente', email = new_email
     WHERE id = _id;
 
+    -- Elimina la riga associata all'ex studente dalla tabella degli ex studenti
+    DELETE FROM universal.ex_studenti
+    WHERE id = _id;
+
     -- Inserisce i dati dell'ex studente nella tabella degli ex studenti
     INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
     VALUES (_id, _motivo, matricola_ex_studente, cdl);
@@ -47,6 +52,7 @@ $$;
 
 
 -- INSERISCE UN NUOVO UTENTE
+--ok
 CREATE OR REPLACE PROCEDURE universal.insert_utente(
     nome VARCHAR(40),
     cognome VARCHAR(40),
@@ -60,7 +66,7 @@ DECLARE
     crypt_password VARCHAR(255);
 BEGIN
     -- Verifica che la password soddisfi i vincoli prima della crittografia
-    IF LENGTH(password) != 8 OR NOT (password ~ '[!@#$%^&*()-_+=]') THEN
+    IF LENGTH(password) != 8 OR NOT (password ~ '.*[!@#$%^&*()-_+=].*') THEN
         RAISE EXCEPTION 'La password deve essere lunga 8 caratteri e contenere almeno un carattere speciale.';
     END IF;
 
@@ -71,40 +77,9 @@ BEGIN
 END;
 $$;
 
--- ELIMINA UN UTENTE.
---RICORDO CHE DEVO SFRUTTARE IL TRIGGER 'AGGIONA TABELLA', DUNQUE IN REALTA VADO AD ELIMINARE L'UTENTE DALLA SUA TABELLA OPPORTUNA IN BASE AL TIPO
-
-CREATE OR REPLACE PROCEDURE universal.delete_utente(
-    _id uuid
-)
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    tipo_utente TipoUtente;
-BEGIN
-    -- Ottieni il tipo dell'utente
-    SELECT tipo INTO tipo_utente
-    FROM universal.utenti
-    WHERE id = _id;
-
-    -- Elimina l'utente in base al suo tipo
-    CASE tipo_utente
-        WHEN 'studente' THEN
-            DELETE FROM universal.studenti WHERE id = _id;
-        WHEN 'ex_studente' THEN
-            DELETE FROM universal.ex_studenti WHERE id = _id;
-        WHEN 'docente' THEN
-            DELETE FROM universal.docenti WHERE id = _id;
-        WHEN 'segretario' THEN
-            DELETE FROM universal.segretari WHERE id = _id;
-        ELSE
-            RAISE EXCEPTION 'Tipo utente non valido';
-    END CASE;
-END;
-$$;
-
 
 -- INSERISCE UN CORSO DI LAUREA
+--ok
 CREATE OR REPLACE PROCEDURE universal.insert_degree_course(
     _nome VARCHAR(40),
     _tipo INTEGER,
@@ -151,7 +126,8 @@ CREATE OR REPLACE PROCEDURE universal.insert_exam_session(
         END;
     $$;
 
--- ISCRIVE UNO STUDENTE AD UN APPELLO ( DATO IL SUO ID E APPELLO, SPERO DI AVERLO NELLA SESSIONE PHP )
+-- ISCRIVE UNO STUDENTE AD UN APPELLO ( DATO IL SUO ID E APPELLO)
+--ok
 CREATE OR REPLACE PROCEDURE universal.subscription(
     _id uuid,
     _appello INTEGER
@@ -175,7 +151,7 @@ BEGIN
 
         -- Inserisci l'iscrizione dello studente all'appello d'esame
         INSERT INTO universal.iscritti (appello, studente, insegnamento, voto)
-        VALUES (_appello, _id, codice_insegnamento, NULL);
+        VALUES (_appello, _id, codice_insegnamento, 0);
     END;
 END;
 $$;
@@ -183,6 +159,7 @@ $$;
 
 
 -- DOCENTE METTE VALUTAZIONE
+--ok
 CREATE OR REPLACE PROCEDURE universal.insert_grade(
     _id_studente uuid,
     _id_docente uuid,
@@ -204,26 +181,12 @@ BEGIN
     -- Aggiornamento del voto dello studente nell'appello specificato
     UPDATE universal.iscritti
     SET voto = _voto
-    WHERE studente = _id_studente AND appello = codice_appello;
-END;
-$$;
-
--- STUDENTE SI ISCRIVE AD UN CORSO DI LAUREA
-
-CREATE OR REPLACE PROCEDURE universal.subsribe_to_cdl(
-    _id_studente uuid,
-    _codice INTEGER
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE universal.studenti
-    SET corso_di_laurea = _codice
-    WHERE id = _id_studente;
+    WHERE studente = _id_studente AND appello = codice_appello AND voto = 0;
 END;
 $$;
 
 -- CAMBIA LA PASSWORD DI UN STUDENTE/EX_STUDENTE/DOCENTE/SEGRETARIO
+--ok
 CREATE OR REPLACE PROCEDURE universal.change_password(
     _id_utente uuid,
     _vecchia_password VARCHAR(255),
@@ -259,7 +222,9 @@ BEGIN
     WHERE id = _id_utente;
 END;
 $$;
+
 -- DISISCRIZIONE APPELLO STUDENTE
+--ok
 CREATE OR REPLACE PROCEDURE universal.unsubscribe_from_exam_appointment
 (
     id_studente uuid,
@@ -279,7 +244,7 @@ END;
 $$;
 
 -- ISCRIZIONE CORSO DI LAURERA STUDENTE
-
+--ok
 CREATE OR REPLACE PROCEDURE universal.subscribe_to_cdl
 (
     id_studente uuid,
@@ -300,28 +265,8 @@ BEGIN
 END;
 $$;
 
--- DISISCRIZIONE CORSO DI LAUREA STUDENTE
-
-CREATE OR REPLACE PROCEDURE universal.unsubscribe_to_cdl
-(
-    id_studente uuid,
-    codice_cdl INTEGER
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- Verifica se lo studente è iscritto al corso di laurea selezionato
-    IF  NOT EXISTS (SELECT 1 FROM universal.studenti AS s WHERE s.corso_di_laurea = codice_cdl AND s.id = id_studente) THEN
-        RAISE EXCEPTION 'non sei iscritto al corso di laurea selezionato.';
-    END IF;
-    -- disiscrive lo studente dal cdl selezionato
-    UPDATE universal.studenti
-    SET corso_di_laurea = NULL
-    WHERE id = id_studente AND corso_di_laurea = codice_cdl;
-END;
-$$;
-
 -- CREAZIONE APPELLO DOCENTE
+--ok
 CREATE OR REPLACE PROCEDURE universal.create_exam_session
 (
     id_docente uuid,
@@ -343,6 +288,11 @@ BEGIN
         RAISE EXCEPTION 'Non sei il responsabile di questo insegnamento';
     END IF;
 
+    -- Verifica se la data è passata
+    IF _data < CURRENT_DATE THEN
+        RAISE EXCEPTION 'Non puoi creare un appello in una data passata.';
+    END IF;
+
     -- Verifica se esiste già un appello nella stessa data e luogo
     IF EXISTS (SELECT 1 FROM universal.appelli WHERE data = _data AND luogo = _luogo) THEN
         RAISE EXCEPTION 'Esiste già un appello in quel giorno e luogo.';
@@ -353,6 +303,7 @@ BEGIN
     VALUES (_data, _luogo, _insegnamento);
 END;
 $$;
+
 
  -- CANCELLAZIONE APPELLO DOCENTE
 
@@ -391,39 +342,8 @@ BEGIN
 END;
 $$;
 
--- CREAZIONE STUDENTE SEGRETARIO
-CREATE OR REPLACE PROCEDURE universal.delete_utente(
-    _id uuid
-)
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    tipo_utente TipoUtente;
-BEGIN
-    -- Ottieni il tipo dell'utente
-    SELECT tipo INTO tipo_utente
-    FROM universal.utenti
-    WHERE id = _id;
-
-    -- Elimina l'utente in base al suo tipo
-    CASE tipo_utente
-        WHEN 'studente' THEN
-            DELETE FROM universal.studenti WHERE id = _id;
-        WHEN 'ex_studente' THEN
-            DELETE FROM universal.ex_studenti WHERE id = _id;
-        WHEN 'docente' THEN
-            DELETE FROM universal.docenti WHERE id = _id;
-        WHEN 'segretario' THEN
-            DELETE FROM universal.segretari WHERE id = _id;
-        ELSE
-            RAISE EXCEPTION 'Tipo utente non valido';
-    END CASE;
-
-
-END;
-$$;
-
 -- SEGRETARIO CAMBIA DOCENTE RESPONSABILE DI UN INSEGNAMENTO
+--ok
 CREATE OR REPLACE PROCEDURE universal.change_course_responsible_teacher
 (
     _id_nuovo_docente uuid,
@@ -444,6 +364,7 @@ END;
 $$;
 
 -- Modifica la sede di un segretario
+--ok
 CREATE OR REPLACE PROCEDURE universal.change_secretary_office
 (
     _id uuid,
@@ -459,6 +380,7 @@ BEGIN
     WHERE s.id = _id;
 END;
 $$;
+
 -- ELIMINA UN SEGRETARIO DATO IL SUO ID
 CREATE OR REPLACE PROCEDURE universal.delete_secretary
 (
@@ -477,6 +399,7 @@ $$;
 
 --ELIMINA UN DOCENTE DATO IL SUO ID
 --DATO CHE OGNI CORSO DEVE AVERE UN RESPONSABIOE, NON ELIMINA UN DOCENTE SE QUESTO È RESPONSABILE DI UN CORSO
+--ok
 CREATE OR REPLACE PROCEDURE universal.delete_teacher
 (
     _id uuid
@@ -496,7 +419,7 @@ BEGIN
 END;
 $$;
 
-
+--ok
 CREATE OR REPLACE PROCEDURE universal.insert_propaedeutics
 (
     codice_ins INTEGER,

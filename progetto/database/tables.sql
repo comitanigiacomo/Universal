@@ -12,7 +12,7 @@ CREATE TABLE universal.utenti(
     cognome VARCHAR(40) NOT NULL CHECK(cognome !~ '[0-9]'),
     tipo TipoUtente NOT NULL CHECK(tipo IN ('studente', 'docente', 'segretario', 'ex_studente')),
     email VARCHAR(255) NOT NULL CHECK(email != ''),
-    password VARCHAR(255) NOT NULL CHECK (LENGTH(password) = 8 AND password ~ '[!@#$%^&*()-_+=]')
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE universal.docenti (
@@ -33,11 +33,10 @@ CREATE TABLE universal.segretari (
 
 CREATE TABLE universal.ex_studenti (
     id uuid PRIMARY KEY REFERENCES universal.utenti(id),
-    matricola INTEGER NOT NULL REFERENCES universal.studenti(matricola),
+    matricola INTEGER NOT NULL,
     motivo TipoMotivo NOT NULL,
     corso_di_laurea INTEGER REFERENCES universal.corsi_di_laurea(codice) ON UPDATE CASCADE
 );
-
 
 CREATE TABLE universal.corsi_di_laurea (
     codice SERIAL UNIQUE PRIMARY KEY,
@@ -61,14 +60,15 @@ CREATE TABLE universal.appelli (
     luogo VARCHAR(40) NOT NULL,
     insegnamento INTEGER NOT NULL REFERENCES universal.insegnamenti(codice) ON UPDATE CASCADE
 );
+
+
 CREATE TABLE universal.iscritti (
     appello INTEGER NOT NULL REFERENCES universal.appelli(codice),
     studente uuid NOT NULL REFERENCES universal.utenti(id),
     insegnamento INTEGER,
     voto INTEGER CHECK( voto BETWEEN 0 AND 31 ),
-    PRIMARY KEY (appello, studente)
+    PRIMARY KEY (appello, studente, voto)
 );
-
 
 CREATE TABLE universal.propedeutico (
     insegnamento INTEGER NOT NULL REFERENCES universal.insegnamenti(codice),
