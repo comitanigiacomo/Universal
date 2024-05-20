@@ -322,7 +322,7 @@ BEGIN
     current_insegnamento_id := NEW.insegnamento;
     propedeuticita_id := NEW.propedeuticità;
 
-    -- Verifica ricorsiva delle propedeuticità per rilevare ciclicità
+    -- Verifica delle propedeuticità per rilevare ciclicità
     WHILE propedeuticita_id IS NOT NULL AND NOT is_cyclic LOOP
         IF current_insegnamento_id = propedeuticita_id THEN
             is_cyclic := TRUE;
