@@ -1,12 +1,5 @@
 Giacomo Comitani, Matricola 986596
 
-TO DO : 
-
-- non posso visualizzare uno studente nell'iscrizione ad un appello, se questo è gia iscritto
-- mettere possibilità di inserire numeri all'interno dei nomi dei corsi 
-- manuale utente
-- Controllare dove ci sono i codici dei Cdl
-
 # Indice
 
 - [Database](#database)
