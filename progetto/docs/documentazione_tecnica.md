@@ -43,6 +43,59 @@ Giacomo Comitani, Matricola 986596
 - **iscritti**: (appello, studente, insegnamento, voto)
 - **propedeutico**: (insegnamento, propedeuticità)
 
+- **Entità utente** :
+
+Rappresenta un utente generico della base di dati, si divide nelle seguenti categorie:
+
+- Studente
+- Segreteria
+- Docente
+- Ex studente
+
+L'entità utente contiene delle caratteristiche comuni a tutti gli utenti, come l'`id` e il `tipo`
+
+- **Entità studente** :
+
+lo studente ha una `matricola` univoca, ed è iscritto ad un corso di laurea. L'iscrizione dello studente al corso di laurea è gestito dalla segreteria. Lo studente può iscriversi a tutti gli appelli degli insegnamenti previsti dal corso di laurea a cui è iscritto. lo studente può essere iscritto solamente ad un corso di laurea contemporaneamente. I voti dello studente sono memorizzati nella tabella `iscritti`, dalla quale non verranno mai cancellati.
+
+- **Entità docente** :
+
+Il docente ha un'informazione di contorno, `ufficio`, ed è responsabile di al massimo tre `insegnamenti`.
+l'assegnazione di un docente come responsabile di un insegnamento è gestita dalla segreteria, quindi alla sua creazione, l'entità docente non è responsabile di alcun corso. Dal momento in cui al docente vengono assegnati dei corsi, queesto può creare appelli, e gestire gli studenti iscritti a quest'ultimi.
+
+- **Entità ex studente** :
+
+Gli ex studenti sono studenti che hanno abbandonato il corso di studi a cui erano iscritti per uno dei seguenti motivi: 
+
+- Rinuncia agli studi
+- Conseguimento della laurea.
+
+La conversione di uno studente in un ex studente viene gestita dalla segreteria. Gli ex studenti presenti nella base di dati possono visualizzare tutti le proprie valutazioni passate, in quanto la tabella `iscritti` funge anche da storico delle valutazioni.
+
+- **Entità segretario** :
+
+I segretari sono le entità che hanno maggior potere all'interno della base di dati. Hanno la `sede` come informazione di contorno, e sono in grado di gestire ogni tipo di utente. importante notare come un segretario non abbia la facoltà di eliminare se stesso.
+
+- **Corso di laurea** :
+
+L'entità rappresenta un corso di laurea all'interno dell'università. Possiede una serie di attributi quali una `descrizione`, un `codice` univoco, un `nome` ed un `tipo`, che ne specifica la durata in anni. I corsi di laurea non verranno mai cancellati dalla base di dati. 
+
+- **Insegnamento** : 
+
+Un insegnamento è identificato da un `codice` incrementale univoco, e possiede diversi attributi quali un `nome`, una `descrizione` ed un `anno`. L'insegnamento deve avere obbligatoriamente un docente responsabile, che si occupa di gestirne gli appelli.
+
+- **Appello** :
+
+Rappresenta l'appello d'esame di un certo insegnamento. È identificato da un codice univoco, una data, ed un luogo. Gli studenti possono iscriversi agli appelli solamente se appartengono  ad un insegnamento presente nel corso di laurea a cui sono iscritti, e suppongo che gli appelli non vengano mai eliminati. Gli studenti non possono iscriversi all'appello se la sua data è passata rispetto alla data odierna.  
+
+- **Iscritti** :
+
+la relazione contiene le iscrizioni degli studenti agli appelli, e le relative valutazioni, sospese o finali. Le valutazioni non vengono mai eliminate, per questo la relazione funge anche da storico delle valutazioni per studenti ed ex-studenti, e da storico delle valutazioni assegnate per i docenti.
+
+- **Propedeuticità** : 
+
+Uninsegnamento può o meno avere una o più propedeuticità, che devono essere rispettate da uno studente per permettergli di iscriversi ad un appello d'esame. Prima di validare l'iscrizione ad un appello da parte di uno studente, viene quindi verificato che le propedeuticità siano rispettate. Infine, nel momento ddell'assegnazione di una propedeuticità ad un insegnamento, viene controllato che non vi siano propedeuticità cicliche. 
+
 ## Schema logico
 
 ![Descrizione immagine](images/SchemaLogico.png)
