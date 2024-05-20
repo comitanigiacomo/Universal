@@ -43,9 +43,7 @@ Giacomo Comitani, Matricola 986596
 - **iscritti**: (appello, studente, insegnamento, voto)
 - **propedeutico**: (insegnamento, propedeuticità)
 
-------
-
-- **Entità utente** :
+**Entità utente** :
 
 Rappresenta un utente generico della base di dati, si divide nelle seguenti categorie:
 
