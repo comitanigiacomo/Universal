@@ -502,7 +502,7 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
 
 - Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
 
-![Descrizione immagine](images/visualizzaCarrieraCompleta.png)
+<center>![Descrizione immagine](images/visualizzaCarrieraCompleta.png)</center>
 
 # Docenti
 
