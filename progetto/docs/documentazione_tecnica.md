@@ -491,7 +491,7 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
   <img src="images/visualizzaAppelliStudente.png" alt="alt text">
 </p>
 
-- Visualizzare gli appelli di tutti i cordi presenti nel sistema 
+- Visualizzare gli appelli di tutti i corsi presenti nel sistema 
 
 - Visualizzare tutti i corsi di laurea e i rispettivi insegnamenti
 
@@ -513,7 +513,15 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
 
 - Visualizzare la propria carriera, intesa come l'inseme delle valutazioni finali ottenute per ogni esame dato
 
+<p align="center">
+  <img src="images/visualizzaCarriera.png" alt="alt text">
+</p>
+
 - Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
+
+<p align="center">
+  <img src="images/visualizzaCarrieraCompleta.png" alt="alt text">
+</p>
 
 # Docenti
 
@@ -601,7 +609,17 @@ Ecco una lista delle principali funzionalita':
 </p>
 
 - Visualizzare i corsi di cui il docente e' responsabile 
+
+<p align="center">
+  <img src="images/corsiDiCuièResponsabile.png" alt="alt text">
+</p>
+
 - Visualizzare tutte le valutazioni che il docente ha assegnato 
+
+<p align="center">
+  <img src="images/valutazioniAssegnate.png" alt="alt text">
+</p>
+
 - Eliminare il docente dal sistema. In questo caso, il docente potra' essere eliminato solamente se non ci sono all'interno del sistema insegnamenti di cui e' responsabile 
 - Modificare la password del docente
 - Visualizzare tutti gli studenti
