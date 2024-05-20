@@ -658,6 +658,8 @@ I segretari possono poi visualizzare tutti i segretari presenti nel sistema
   <img src="images/visualizzaSegretari.png" alt="alt text">
 </p>
 
+Da notare che un segreatrio, nel caso sia l'ultimo presente nel sistema, non ha la possibilità di eliminare se stesso.
+
 Infine, I segretari hanno la possibilità di inserire un nuovo utente all'interno del sistema, specificandone il nome, il cognome, il tipo e la password
 
 <p align="center">
