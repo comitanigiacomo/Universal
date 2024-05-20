@@ -431,9 +431,7 @@ Il file login.php si occupa di gestire l'autenticazione degli utenti nel sistema
 
 Una volta effettuato l'accesso al sistema, l'utente può usufruire delle diverse funzionalità disponibili, in base al suo tipo di account.
 
-<p align="center">
-  <img src="images/login.png" alt="alt text">
-</p>
+![Descrizione immagine](images/login.png)
 
 ```php
 if(isset($_POST["email"]) && isset($_POST["password"])) {
@@ -476,49 +474,35 @@ if(isset($_POST["email"]) && isset($_POST["password"])) {
 
 Nel caso di uno studente, Questo verrà inizialmente reindirizzato alla seguente pagina: 
 
-<p align="center">
-  <img src="images/homeStudent.png" alt="alt text">
-</p>
+![Descrizione immagine](images/homeStudent.png)
 
 Da qui ogni studente ha a disposizione una serie di funzionalità: 
 
 - Visualizzare tutti gli appelli del corso di laurea al quale è iscritto
 
-<p align="center">
-  <img src="images/visualizzaAppelliStudente.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaAppelliStudente.png)
 
 - Visualizzare gli appelli di tutti i corsi presenti nel sistema 
 
 - Visualizzare tutti i corsi di laurea e i rispettivi insegnamenti
 
-<p align="center">
-  <img src="images/visualizzaCdl.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCdl.png)
 
 - Visualizzare gli esami mancanti alla laurea 
 
-<p align="center">
-  <img src="images/visualizzaEsamiMancanti.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaEsamiMancanti.png)
 
 - Visualizzare le iscrizioni attive agli esami 
 
-<p align="center">
-  <img src="images/visualizzaIscrizioni.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaIscrizioni.png)
 
 - Visualizzare la propria carriera, intesa come l'inseme delle valutazioni finali ottenute per ogni esame dato
 
-<p align="center">
-  <img src="images/visualizzaCarriera.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCarriera.png)
 
 - Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
 
-<p align="center">
-  <img src="images/visualizzaCarrieraCompleta.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCarrieraCompleta.png)
 
 # Docenti
 
