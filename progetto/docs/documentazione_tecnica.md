@@ -502,41 +502,31 @@ Da qui ogni studente ha a disposizione una serie di funzionalità:
 
 - Visualizzare la propria carriera completa, intesa come l'elenco di tutte le valutazioni ottenute per ogni esame dato, compresi tutti i tentativi 
 
-<center>![Descrizione immagine](images/visualizzaCarrieraCompleta.png)</center>
+![Descrizione immagine](images/visualizzaCarrieraCompleta.png)
 
 # Docenti
 
 Gli utenti che si identificano come docenti hanno accesso a piu' funzioni rispetto a quelle accessibili agli studenti. Un docente che effettua il login al sistema viene reindirizzato inizialmente ala seguente pagina: 
 
-<p align="center">
-  <img src="images/homeTeacher.png" alt="alt text">
-</p>
+![Descrizione immagine](images/homeTeacher.png)
 
 Le funzionalità a disposizione del docente sono le seguenti: 
 
 - Modificare la propria password 
 
-<p align="center">
-  <img src="images/changePassword.png" alt="alt text">
-</p>
+![Descrizione immagine](images/changePassword.png)
 
 - Visualizzare gli insegnamenti di cui il docente è responsabile
 
-<p align="center">
-  <img src="images/visualizzaCordiDiCuiSeiResponsabile.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCordiDiCuiSeiResponsabile.png)
 
 - Per ogni insegnamento, visualizzarne gli appelli
 
-<p align="center">
-  <img src="images/visualizzaInsegnamentiCorso.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaInsegnamentiCorso.png)
 
 - Per ogni appello, visualizzare gli studenti iscritti
 
-<p align="center">
-  <img src="images/visualizzaIscrittiAppello.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaIscrittiAppello.png)
 
 - Assegnare una valutazione ad uno studente iscritto ad un appello
 
@@ -544,9 +534,7 @@ Le funzionalità a disposizione del docente sono le seguenti:
 
 - Visualizzare tutte le valutazioni assegnate 
 
-<p align="center">
-  <img src="images/visualizzaValutazioniAssegnate.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaValutazioniAssegnate.png)
 
 ## Segretari
 
@@ -554,9 +542,7 @@ I segretari sono gli utenti con maggior potere all'interno del sistema, dato che
 
 Inizialmente vengono reindirizzati alla pagina iniziale della loro arera personale: 
 
-<p align="center">
-  <img src="images/homeSecretary.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCarrieraCompleta.png)
 
 Da qui un segretario puo'come di consueto modificare la propria password, ma anche gestire studenti e docenti. 
 
@@ -564,57 +550,41 @@ Ecco una lista delle principali funzionalita':
 
 - Visualizzare tutti i corsi di laurea 
 
-<p align="center">
-  <img src="images/visualizzaCdlSegretario.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaCdlSegretario.png)
 
 - Visualizzare gli insegnamenti del corso 
 - Creare un nuovo corso di laurea 
 
-<p align="center">
-  <img src="images/gestisciCdlSegretario.png" alt="alt text">
-</p>
+![Descrizione immagine](images/gestisciCdlSegretario.png)
 
 - Visualizzare gli appelli dell'insegnamento
 - Modificare il responsabile dell'insegnamento
 - Visualizzare, se presenti, le propedeuticita' dell'insegnamento 
 - Creare nuovi appelli e visualizzarne gli studenti iscritti
 
-<p align="center">
-  <img src="images/gestisciAppelliSegretario.png" alt="alt text">
-</p>
+![Descrizione immagine](images/gestisciAppelliSegretario.png)
 - Visualizzare tutti i docenti
 
-<p align="center">
-  <img src="images/visualizzaDocenti.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaDocenti.png)
 
 - Visualizzare i corsi di cui il docente e' responsabile 
 
-<p align="center">
-  <img src="images/corsiDiCuièResponsabile.png" alt="alt text">
-</p>
+![Descrizione immagine](images/corsiDiCuièResponsabile.png)
 
 - Visualizzare tutte le valutazioni che il docente ha assegnato 
 
-<p align="center">
-  <img src="images/valutazioniAssegnate.png" alt="alt text">
-</p>
+![Descrizione immagine](images/valutazioniAssegnate.png)
 
 - Eliminare il docente dal sistema. In questo caso, il docente potra' essere eliminato solamente se non ci sono all'interno del sistema insegnamenti di cui e' responsabile 
 - Modificare la password del docente
 - Visualizzare tutti gli studenti
 - Visualizzare tutti gli studenti presenti nel sistema
 
-<p align="center">
-  <img src="images/visualizzaStudenti.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaStudenti.png)
 
 Inoltre, per ogni studente, hanno a disposizione numerose funzionalita' che gli permettono di gestirlo opportunamente. 
 
-<p align="center">
-  <img src="images/gestisciStudente.png" alt="alt text">
-</p>
+![Descrizione immagine](images/gestisciStudente.png)
 
 In particolare, per ogni studente un segretario e' in grado di : 
 
@@ -629,23 +599,17 @@ In particolare, per ogni studente un segretario e' in grado di :
 
 I segretari hanno a disposizione una schermata da cui possono visualizzare tutti gli ex studenti presenti nel sistema
 
-<p align="center">
-  <img src="images/visualizzaexStudenti.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaexStudenti.png)
 
 I segretari possono poi visualizzare tutti i segretari presenti nel sistema 
 
-<p align="center">
-  <img src="images/visualizzaSegretari.png" alt="alt text">
-</p>
+![Descrizione immagine](images/visualizzaSegretari.png)>
 
 Da notare che un segreatrio, nel caso sia l'ultimo presente nel sistema, non ha la possibilità di eliminare se stesso.
 
 Infine, I segretari hanno la possibilità di inserire un nuovo utente all'interno del sistema, specificandone il nome, il cognome, il tipo e la password
 
-<p align="center">
-  <img src="images/createUser.png" alt="alt text">
-</p>
+![Descrizione immagine](images/createUser.png)
 
 # Funzioni Realizzate
 
