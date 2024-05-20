@@ -16,17 +16,350 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+DROP DATABASE IF EXISTS universal;
 --
--- Name: universal; Type: SCHEMA; Schema: -; Owner: giacomo
+-- Name: universal; Type: DATABASE; Schema: -; Owner: -
 --
+
+CREATE DATABASE universal WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'it_IT.UTF-8';
+
+
+\connect universal
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: universal; Type: SCHEMA; Schema: -; Owner: -
+--
+
+
+DROP SCHEMA IF EXISTS universal CASCADE;
 
 CREATE SCHEMA universal;
 
 
-ALTER SCHEMA universal OWNER TO giacomo;
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
 
 --
--- Name: change_course_responsible_teacher(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: tipomotivo; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.tipomotivo AS ENUM (
+    'laureato',
+    'rinuncia'
+);
+
+
+--
+-- Name: tipoutente; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.tipoutente AS ENUM (
+    'studente',
+    'docente',
+    'segretario',
+    'ex_studente'
+);
+
+
+--
+-- Name: aggiorna_tabella(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.aggiorna_tabella() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    new_matricola INTEGER;
+BEGIN
+    IF NEW.tipo = 'studente' THEN
+        new_matricola := genera_matricola();
+        INSERT INTO universal.studenti (id, matricola, corso_di_laurea)
+        VALUES (NEW.id, new_matricola,NULL);
+    ELSIF NEW.tipo = 'docente' THEN
+        INSERT INTO universal.docenti (id, ufficio)
+        VALUES (NEW.id, 'edificio 74');
+    ELSIF NEW.tipo = 'segretario' THEN
+        INSERT INTO universal.segretari (id, sede)
+        VALUES (NEW.id, 'sede centrale');
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: check_instructor_course_limit(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_instructor_course_limit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    instructor_id uuid;
+    course_count INTEGER;
+BEGIN
+    -- Ottieni l'ID del docente responsabile dell'insegnamento
+    instructor_id := NEW.docente_responsabile;
+
+    -- Conta il numero di corsi di cui il docente è responsabile
+    SELECT COUNT(*)
+    INTO course_count
+    FROM universal.insegnamenti
+    WHERE docente_responsabile = instructor_id;
+
+    -- Se il docente è già responsabile di più di 3 corsi, solleva un'eccezione
+    IF course_count >= 3 THEN
+        RAISE EXCEPTION 'Il docente è già responsabile di più di 3 corsi.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: check_number_of_session(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_number_of_session() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    corso_di_laurea_id INTEGER;
+    data_appello DATE;
+    count_sessions INTEGER;
+BEGIN
+    -- Ottieni il corso di laurea del corso associato all'appello
+    SELECT corso_di_laurea INTO corso_di_laurea_id
+    FROM universal.insegnamenti
+    WHERE codice = NEW.insegnamento;
+
+    -- Ottieni la data dell'appello
+    SELECT data INTO data_appello
+    FROM universal.appelli
+    WHERE codice = NEW.codice;
+
+    -- Conta il numero di appelli nella stessa data per lo stesso corso di laurea
+    SELECT COUNT(*)
+    INTO count_sessions
+    FROM universal.appelli AS a
+    JOIN universal.insegnamenti AS i ON a.insegnamento = i.codice
+    WHERE i.corso_di_laurea = corso_di_laurea_id
+    AND a.data = data_appello;
+
+    -- Se ci sono già appelli nella stessa data per lo stesso corso di laurea, solleva un'eccezione
+    IF count_sessions > 1 THEN
+        RAISE EXCEPTION 'Sono già presenti % appelli per il corso di laurea nella stessa data.', count_sessions;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: check_prerequisites_before_enrollment(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_prerequisites_before_enrollment() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    prereq_count INTEGER;
+BEGIN
+    -- Controlla se ci sono insegnamenti correlati all'appello che richiedono propedeuticità
+    SELECT COUNT(*) INTO prereq_count
+    FROM universal.propedeutico p
+    WHERE p.insegnamento = NEW.insegnamento;
+
+    -- Se ci sono propedeuticità richieste
+    IF prereq_count > 0 THEN
+        -- Controlla se lo studente soddisfa le propedeuticità necessarie
+        SELECT COUNT(*) INTO prereq_count
+        FROM universal.propedeutico p
+        WHERE p.insegnamento = NEW.insegnamento
+        AND p.propedeuticità NOT IN (
+            SELECT i.insegnamento
+            FROM universal.iscritti i
+            WHERE i.studente = NEW.studente
+        );
+
+        -- Se lo studente non soddisfa le propedeuticità richieste, genera un errore
+        IF prereq_count > 0 THEN
+            RAISE EXCEPTION 'Lo studente non soddisfa le propedeuticità necessarie per questo appello.';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: check_subscription_to_cdl(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_subscription_to_cdl() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    -- Controlla se lo studente è già iscritto a un corso di laurea
+    IF EXISTS (SELECT 1 FROM universal.studenti WHERE id = NEW.id AND corso_di_laurea IS NOT NULL) THEN
+        RAISE EXCEPTION 'Lo studente è già iscritto a un corso di laurea.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: elimina_utente_dopo_cancellazione(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.elimina_utente_dopo_cancellazione() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    DELETE FROM universal.utenti WHERE id = OLD.id;
+    RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: elimina_utente_dopo_cancellazione_docente(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.elimina_utente_dopo_cancellazione_docente() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    DELETE FROM universal.utenti WHERE id = OLD.id;
+    RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: genera_matricola(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.genera_matricola() RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        nuova_matricola INTEGER;
+    BEGIN
+        SELECT nextval('matricola_sequence') INTO nuova_matricola;
+        RETURN nuova_matricola;
+    END;
+$$;
+
+
+--
+-- Name: non_cyclic_prerequisites_check(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.non_cyclic_prerequisites_check() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    current_insegnamento_id INTEGER;
+    propedeuticita_id INTEGER;
+    is_cyclic BOOLEAN := FALSE;
+BEGIN
+    current_insegnamento_id := NEW.insegnamento;
+    propedeuticita_id := NEW.propedeuticità;
+
+    -- Verifica ricorsiva delle propedeuticità per rilevare ciclicità
+    WHILE propedeuticita_id IS NOT NULL AND NOT is_cyclic LOOP
+        IF current_insegnamento_id = propedeuticita_id THEN
+            is_cyclic := TRUE;
+        END IF;
+
+        SELECT propedeuticità INTO propedeuticita_id
+        FROM universal.propedeutico
+        WHERE insegnamento = propedeuticita_id;
+    END LOOP;
+
+    IF is_cyclic THEN
+        RAISE EXCEPTION 'Ciclicità rilevata tra le propedeuticità.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: studenttoexstudent(uuid, public.tipomotivo); Type: PROCEDURE; Schema: public; Owner: -
+--
+
+CREATE PROCEDURE public.studenttoexstudent(IN _id uuid, IN _motivo public.tipomotivo)
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    matricola_ex_studente INTEGER;
+    cdl INTEGER;
+    new_email TEXT;
+    old_email TEXT;
+BEGIN
+    SELECT matricola INTO matricola_ex_studente
+    FROM universal.studenti
+    WHERE id = _id;
+
+    SELECT corso_di_laurea INTO cdl
+    FROM universal.studenti
+    WHERE id = _id;
+
+    SELECT email into old_email
+    FROM universal.utenti AS u
+    WHERE u.id = _id;
+
+    -- Costruisci il nuovo indirizzo email dell'ex studente
+    new_email := REPLACE(old_email, '@studenti.', '@exstudenti.');
+
+    -- Aggiorna il tipo dell'utente a 'ex_studente' e modifica l'email
+    UPDATE universal.utenti
+    SET tipo = 'ex_studente', email = new_email
+    WHERE id = _id;
+
+    -- Inserisce i dati dell'ex studente nella tabella degli ex studenti
+    INSERT INTO universal.ex_studenti (id, motivo, matricola, corso_di_laurea)
+    VALUES (_id, _motivo, matricola_ex_studente, cdl);
+
+    -- Rimuove lo studente dalla tabella studenti
+    DELETE FROM universal.studenti
+    WHERE id = _id;
+
+END;
+$$;
+
+
+--
+-- Name: change_course_responsible_teacher(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.change_course_responsible_teacher(IN _id_nuovo_docente uuid, IN codice_insegnamento integer)
@@ -45,10 +378,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.change_course_responsible_teacher(IN _id_nuovo_docente uuid, IN codice_insegnamento integer) OWNER TO giacomo;
-
 --
--- Name: change_password(uuid, character varying, character varying); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: change_password(uuid, character varying, character varying); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.change_password(IN _id_utente uuid, IN _vecchia_password character varying, IN _nuova_password character varying)
@@ -84,10 +415,8 @@ END;
 $_$;
 
 
-ALTER PROCEDURE universal.change_password(IN _id_utente uuid, IN _vecchia_password character varying, IN _nuova_password character varying) OWNER TO giacomo;
-
 --
--- Name: change_secretary_office(uuid, character varying); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: change_secretary_office(uuid, character varying); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.change_secretary_office(IN _id uuid, IN _nuova_sede character varying)
@@ -103,10 +432,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.change_secretary_office(IN _id uuid, IN _nuova_sede character varying) OWNER TO giacomo;
-
 --
--- Name: create_exam_session(uuid, date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: create_exam_session(uuid, date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.create_exam_session(IN id_docente uuid, IN _data date, IN _luogo character varying, IN _insegnamento integer)
@@ -141,10 +468,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.create_exam_session(IN id_docente uuid, IN _data date, IN _luogo character varying, IN _insegnamento integer) OWNER TO giacomo;
-
 --
--- Name: delete_exam_session(uuid, date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: delete_exam_session(uuid, date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.delete_exam_session(IN id_docente uuid, IN _data date, IN _luogo character varying, IN _insegnamento integer)
@@ -177,10 +502,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.delete_exam_session(IN id_docente uuid, IN _data date, IN _luogo character varying, IN _insegnamento integer) OWNER TO giacomo;
-
 --
--- Name: delete_secretary(uuid); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: delete_secretary(uuid); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.delete_secretary(IN _id uuid)
@@ -195,10 +518,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.delete_secretary(IN _id uuid) OWNER TO giacomo;
-
 --
--- Name: delete_teacher(uuid); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: delete_teacher(uuid); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.delete_teacher(IN _id uuid)
@@ -218,10 +539,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.delete_teacher(IN _id uuid) OWNER TO giacomo;
-
 --
--- Name: delete_utente(uuid); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: delete_utente(uuid); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.delete_utente(IN _id uuid)
@@ -252,10 +571,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.delete_utente(IN _id uuid) OWNER TO giacomo;
-
 --
--- Name: get_all_cdl(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_cdl(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_cdl() RETURNS TABLE(codice integer, nome text, tipo text, descrizione text)
@@ -279,10 +596,8 @@ CREATE FUNCTION universal.get_all_cdl() RETURNS TABLE(codice integer, nome text,
 $$;
 
 
-ALTER FUNCTION universal.get_all_cdl() OWNER TO giacomo;
-
 --
--- Name: get_all_exam_sessions(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_exam_sessions(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_exam_sessions() RETURNS TABLE(codice integer, data date, luogo character varying, nome character varying, corso_di_laurea integer)
@@ -303,10 +618,8 @@ CREATE FUNCTION universal.get_all_exam_sessions() RETURNS TABLE(codice integer, 
         $$;
 
 
-ALTER FUNCTION universal.get_all_exam_sessions() OWNER TO giacomo;
-
 --
--- Name: get_all_exstudents(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_exstudents(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_exstudents() RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, matricola integer)
@@ -328,10 +641,8 @@ CREATE FUNCTION universal.get_all_exstudents() RETURNS TABLE(id uuid, nome chara
         $$;
 
 
-ALTER FUNCTION universal.get_all_exstudents() OWNER TO giacomo;
-
 --
--- Name: get_all_students(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_students(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_students() RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, matricola integer, corso_di_laurea text)
@@ -355,10 +666,8 @@ CREATE FUNCTION universal.get_all_students() RETURNS TABLE(id uuid, nome charact
 $$;
 
 
-ALTER FUNCTION universal.get_all_students() OWNER TO giacomo;
-
 --
--- Name: get_all_students_of_cdl(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_students_of_cdl(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_students_of_cdl(codice_cdl integer) RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, matricola integer, cdl integer)
@@ -385,10 +694,8 @@ CREATE FUNCTION universal.get_all_students_of_cdl(codice_cdl integer) RETURNS TA
 $$;
 
 
-ALTER FUNCTION universal.get_all_students_of_cdl(codice_cdl integer) OWNER TO giacomo;
-
 --
--- Name: get_all_students_of_cdl(integer, uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_students_of_cdl(integer, uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_students_of_cdl(codice_cdl integer, id_studente uuid) RETURNS TABLE(nome character varying, cognome character varying, email character varying, matricola integer, cdl text)
@@ -414,10 +721,8 @@ CREATE FUNCTION universal.get_all_students_of_cdl(codice_cdl integer, id_student
 $$;
 
 
-ALTER FUNCTION universal.get_all_students_of_cdl(codice_cdl integer, id_studente uuid) OWNER TO giacomo;
-
 --
--- Name: get_all_teachers(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_teachers(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_teachers() RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, ufficio character varying)
@@ -439,10 +744,8 @@ CREATE FUNCTION universal.get_all_teachers() RETURNS TABLE(id uuid, nome charact
         $$;
 
 
-ALTER FUNCTION universal.get_all_teachers() OWNER TO giacomo;
-
 --
--- Name: get_all_teachers_for_change_responsibility(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_teachers_for_change_responsibility(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_teachers_for_change_responsibility(_id uuid) RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, ufficio character varying)
@@ -464,10 +767,8 @@ CREATE FUNCTION universal.get_all_teachers_for_change_responsibility(_id uuid) R
         $$;
 
 
-ALTER FUNCTION universal.get_all_teachers_for_change_responsibility(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_all_teaching_appointments_for_student_degree(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_all_teaching_appointments_for_student_degree(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_all_teaching_appointments_for_student_degree(_id uuid) RETURNS TABLE(codice integer, data date, luogo character varying, insegnamento character varying)
@@ -491,10 +792,8 @@ CREATE FUNCTION universal.get_all_teaching_appointments_for_student_degree(_id u
 $$;
 
 
-ALTER FUNCTION universal.get_all_teaching_appointments_for_student_degree(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_degree_course(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_degree_course(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_degree_course(_codice integer) RETURNS TABLE(nome text, tipo integer, descrizione text)
@@ -512,10 +811,8 @@ CREATE FUNCTION universal.get_degree_course(_codice integer) RETURNS TABLE(nome 
         $$;
 
 
-ALTER FUNCTION universal.get_degree_course(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_degree_courses(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_degree_courses(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_degree_courses() RETURNS TABLE(codice integer, nome text, tipo integer, descrizione text)
@@ -534,10 +831,8 @@ CREATE FUNCTION universal.get_degree_courses() RETURNS TABLE(codice integer, nom
         $$;
 
 
-ALTER FUNCTION universal.get_degree_courses() OWNER TO giacomo;
-
 --
--- Name: get_email(character varying, character varying, public.tipoutente); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_email(character varying, character varying, public.tipoutente); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_email(nome character varying, cognome character varying, tipo public.tipoutente) RETURNS character varying
@@ -572,10 +867,8 @@ END;
 $_$;
 
 
-ALTER FUNCTION universal.get_email(nome character varying, cognome character varying, tipo public.tipoutente) OWNER TO giacomo;
-
 --
--- Name: get_ex_student(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_ex_student(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_ex_student(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, email character varying, matricola integer, corso_di_laurea text)
@@ -597,10 +890,8 @@ CREATE FUNCTION universal.get_ex_student(_id uuid) RETURNS TABLE(nome character 
         $$;
 
 
-ALTER FUNCTION universal.get_ex_student(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_exam_enrollments(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_exam_enrollments(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_exam_enrollments(_codice integer) RETURNS TABLE(nome character varying, cognome character varying, _id uuid, email character varying, matricola integer, voto integer)
@@ -625,10 +916,8 @@ CREATE FUNCTION universal.get_exam_enrollments(_codice integer) RETURNS TABLE(no
         $$;
 
 
-ALTER FUNCTION universal.get_exam_enrollments(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_exam_sessions(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_exam_sessions(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_exam_sessions(_codice integer) RETURNS TABLE(data date, luogo character varying, nome character varying, corso_di_laurea integer, codice_appello integer, id_docente uuid)
@@ -653,10 +942,8 @@ CREATE FUNCTION universal.get_exam_sessions(_codice integer) RETURNS TABLE(data 
         $$;
 
 
-ALTER FUNCTION universal.get_exam_sessions(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_exstudent_grades(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_exstudent_grades(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_exstudent_grades(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, matricola integer, insegnamento integer, voto integer, data date, corso_di_laurea integer)
@@ -680,10 +967,8 @@ CREATE FUNCTION universal.get_exstudent_grades(_id uuid) RETURNS TABLE(nome char
 $$;
 
 
-ALTER FUNCTION universal.get_exstudent_grades(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_grades(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_grades(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_grades(_codice integer) RETURNS TABLE(nome character varying, cognome character varying, matricola integer, data date, voto integer)
@@ -707,10 +992,8 @@ CREATE FUNCTION universal.get_grades(_codice integer) RETURNS TABLE(nome charact
         $$;
 
 
-ALTER FUNCTION universal.get_grades(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_grades_of_ex_student(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_grades_of_ex_student(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_grades_of_ex_student(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, nome_insegnamento character varying, data date, voto integer)
@@ -734,10 +1017,8 @@ CREATE FUNCTION universal.get_grades_of_ex_student(_id uuid) RETURNS TABLE(nome 
         $$;
 
 
-ALTER FUNCTION universal.get_grades_of_ex_student(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_grades_of_ex_students(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_grades_of_ex_students(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_grades_of_ex_students() RETURNS TABLE(nome character varying, cognome character varying, nome_insegnamento character varying, data date, voto integer)
@@ -761,10 +1042,8 @@ CREATE FUNCTION universal.get_grades_of_ex_students() RETURNS TABLE(nome charact
         $$;
 
 
-ALTER FUNCTION universal.get_grades_of_ex_students() OWNER TO giacomo;
-
 --
--- Name: get_id(character varying); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_id(character varying); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_id(_email character varying) RETURNS TABLE(id uuid)
@@ -780,10 +1059,8 @@ CREATE FUNCTION universal.get_id(_email character varying) RETURNS TABLE(id uuid
     $$;
 
 
-ALTER FUNCTION universal.get_id(_email character varying) OWNER TO giacomo;
-
 --
--- Name: get_missing_exams_for_graduation(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_missing_exams_for_graduation(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_missing_exams_for_graduation(_id uuid) RETURNS TABLE(nome character varying, descrizione text, anno integer, docente_responsabile text)
@@ -811,10 +1088,8 @@ CREATE FUNCTION universal.get_missing_exams_for_graduation(_id uuid) RETURNS TAB
 $$;
 
 
-ALTER FUNCTION universal.get_missing_exams_for_graduation(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_partial_carrer(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_partial_carrer(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_partial_carrer(_id uuid) RETURNS TABLE(nome character varying, descrizione text, anno integer, data date, docente_responsabile text, corso_di_laurea integer, voto integer)
@@ -844,10 +1119,8 @@ CREATE FUNCTION universal.get_partial_carrer(_id uuid) RETURNS TABLE(nome charac
 $$;
 
 
-ALTER FUNCTION universal.get_partial_carrer(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_propaedeutics(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_propaedeutics(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_propaedeutics(codice_ins integer) RETURNS TABLE(nome character varying, descrizione text, anno integer, docente_responsabile text)
@@ -870,10 +1143,8 @@ CREATE FUNCTION universal.get_propaedeutics(codice_ins integer) RETURNS TABLE(no
 $$;
 
 
-ALTER FUNCTION universal.get_propaedeutics(codice_ins integer) OWNER TO giacomo;
-
 --
--- Name: get_secretaries(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_secretaries(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_secretaries() RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, sede character varying)
@@ -895,10 +1166,8 @@ CREATE FUNCTION universal.get_secretaries() RETURNS TABLE(id uuid, nome characte
         $$;
 
 
-ALTER FUNCTION universal.get_secretaries() OWNER TO giacomo;
-
 --
--- Name: get_secretaries(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_secretaries(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_secretaries(_id uuid) RETURNS TABLE(id uuid, nome character varying, cognome character varying, email character varying, sede character varying)
@@ -920,10 +1189,8 @@ CREATE FUNCTION universal.get_secretaries(_id uuid) RETURNS TABLE(id uuid, nome 
         $$;
 
 
-ALTER FUNCTION universal.get_secretaries(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_secretary(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_secretary(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_secretary(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, email character varying, sede character varying)
@@ -943,10 +1210,8 @@ CREATE FUNCTION universal.get_secretary(_id uuid) RETURNS TABLE(nome character v
         $$;
 
 
-ALTER FUNCTION universal.get_secretary(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_single_teaching(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_single_teaching(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_single_teaching(_codice integer) RETURNS TABLE(codice integer, nome character varying, descrizione text, anno integer, responsabile uuid, corso_di_laurea integer)
@@ -968,10 +1233,8 @@ CREATE FUNCTION universal.get_single_teaching(_codice integer) RETURNS TABLE(cod
         $$;
 
 
-ALTER FUNCTION universal.get_single_teaching(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_student(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_student(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_student(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, email character varying, matricola integer, corso_di_laurea text)
@@ -993,10 +1256,8 @@ CREATE FUNCTION universal.get_student(_id uuid) RETURNS TABLE(nome character var
         $$;
 
 
-ALTER FUNCTION universal.get_student(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_student_average(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_student_average(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_student_average(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, matricola integer, media numeric)
@@ -1032,10 +1293,8 @@ CREATE FUNCTION universal.get_student_average(_id uuid) RETURNS TABLE(nome chara
 $$;
 
 
-ALTER FUNCTION universal.get_student_average(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_student_exam_enrollments(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_student_exam_enrollments(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_student_exam_enrollments(_id uuid) RETURNS TABLE(codice integer, data date, luogo character varying, nome_insegnamento character varying)
@@ -1058,10 +1317,8 @@ CREATE FUNCTION universal.get_student_exam_enrollments(_id uuid) RETURNS TABLE(c
         $$;
 
 
-ALTER FUNCTION universal.get_student_exam_enrollments(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_student_grades(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_student_grades(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_student_grades(_id uuid) RETURNS TABLE(nome character varying, descrizione text, anno integer, data date, docente_responsabile text, corso_di_laurea integer, voto integer)
@@ -1087,10 +1344,8 @@ CREATE FUNCTION universal.get_student_grades(_id uuid) RETURNS TABLE(nome charac
 $$;
 
 
-ALTER FUNCTION universal.get_student_grades(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_students_enrolled_in_teaching_appointments(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_students_enrolled_in_teaching_appointments(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_students_enrolled_in_teaching_appointments(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, matricola integer, data date, luogo character varying, insegnamento integer)
@@ -1118,10 +1373,8 @@ CREATE FUNCTION universal.get_students_enrolled_in_teaching_appointments(_id uui
 $$;
 
 
-ALTER FUNCTION universal.get_students_enrolled_in_teaching_appointments(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_teacher(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teacher(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teacher(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, email character varying, ufficio character varying)
@@ -1141,10 +1394,8 @@ CREATE FUNCTION universal.get_teacher(_id uuid) RETURNS TABLE(nome character var
         $$;
 
 
-ALTER FUNCTION universal.get_teacher(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_teacher_grades(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teacher_grades(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teacher_grades(_id uuid) RETURNS TABLE(nome character varying, cognome character varying, matricola integer, data date, luogo character varying, insegnamento integer, voto integer)
@@ -1174,10 +1425,8 @@ CREATE FUNCTION universal.get_teacher_grades(_id uuid) RETURNS TABLE(nome charac
 $$;
 
 
-ALTER FUNCTION universal.get_teacher_grades(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_teaching(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teaching(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teaching() RETURNS TABLE(codice integer, nome character varying, descrizione text, anno integer, responsabile uuid, corso_di_laurea integer)
@@ -1198,10 +1447,8 @@ CREATE FUNCTION universal.get_teaching() RETURNS TABLE(codice integer, nome char
         $$;
 
 
-ALTER FUNCTION universal.get_teaching() OWNER TO giacomo;
-
 --
--- Name: get_teaching_activity_of_professor(uuid); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teaching_activity_of_professor(uuid); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teaching_activity_of_professor(_id uuid) RETURNS TABLE(codice_insegnamento integer, nome character varying, descrizione text, anno integer, corso_di_laurea integer, nome_cdl text)
@@ -1224,10 +1471,8 @@ CREATE FUNCTION universal.get_teaching_activity_of_professor(_id uuid) RETURNS T
 $$;
 
 
-ALTER FUNCTION universal.get_teaching_activity_of_professor(_id uuid) OWNER TO giacomo;
-
 --
--- Name: get_teaching_of_cdl(integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teaching_of_cdl(integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teaching_of_cdl(_codice integer) RETURNS TABLE(codice integer, nome character varying, descrizione text, anno integer, responsabile text, id_responsabile uuid)
@@ -1254,10 +1499,8 @@ CREATE FUNCTION universal.get_teaching_of_cdl(_codice integer) RETURNS TABLE(cod
 $$;
 
 
-ALTER FUNCTION universal.get_teaching_of_cdl(_codice integer) OWNER TO giacomo;
-
 --
--- Name: get_teaching_of_cdl_for_propaedeutics(integer, integer); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: get_teaching_of_cdl_for_propaedeutics(integer, integer); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.get_teaching_of_cdl_for_propaedeutics(codice_cdl integer, codice_ins integer) RETURNS TABLE(codice integer, nome character varying, descrizione text, anno integer, responsabile text)
@@ -1283,10 +1526,8 @@ CREATE FUNCTION universal.get_teaching_of_cdl_for_propaedeutics(codice_cdl integ
 $$;
 
 
-ALTER FUNCTION universal.get_teaching_of_cdl_for_propaedeutics(codice_cdl integer, codice_ins integer) OWNER TO giacomo;
-
 --
--- Name: insert_degree_course(character varying, integer, text); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_degree_course(character varying, integer, text); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_degree_course(IN _nome character varying, IN _tipo integer, IN _descrizione text)
@@ -1300,10 +1541,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.insert_degree_course(IN _nome character varying, IN _tipo integer, IN _descrizione text) OWNER TO giacomo;
-
 --
--- Name: insert_exam_session(date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_exam_session(date, character varying, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_exam_session(IN _data date, IN _luogo character varying, IN _insegnamento integer)
@@ -1316,10 +1555,8 @@ CREATE PROCEDURE universal.insert_exam_session(IN _data date, IN _luogo characte
     $$;
 
 
-ALTER PROCEDURE universal.insert_exam_session(IN _data date, IN _luogo character varying, IN _insegnamento integer) OWNER TO giacomo;
-
 --
--- Name: insert_grade(uuid, uuid, integer, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_grade(uuid, uuid, integer, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_grade(IN _id_studente uuid, IN _id_docente uuid, IN codice_appello integer, IN _voto integer)
@@ -1343,10 +1580,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.insert_grade(IN _id_studente uuid, IN _id_docente uuid, IN codice_appello integer, IN _voto integer) OWNER TO giacomo;
-
 --
--- Name: insert_propaedeutics(integer, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_propaedeutics(integer, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_propaedeutics(IN codice_ins integer, IN codice_prop integer)
@@ -1373,10 +1608,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.insert_propaedeutics(IN codice_ins integer, IN codice_prop integer) OWNER TO giacomo;
-
 --
--- Name: insert_teaching(character varying, text, integer, uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_teaching(character varying, text, integer, uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_teaching(IN _nome character varying, IN _descrizione text, IN _anno integer, IN _responsabile uuid, IN _corso_di_laurea integer)
@@ -1389,10 +1622,8 @@ CREATE PROCEDURE universal.insert_teaching(IN _nome character varying, IN _descr
     $$;
 
 
-ALTER PROCEDURE universal.insert_teaching(IN _nome character varying, IN _descrizione text, IN _anno integer, IN _responsabile uuid, IN _corso_di_laurea integer) OWNER TO giacomo;
-
 --
--- Name: insert_utente(character varying, character varying, public.tipoutente, character varying); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: insert_utente(character varying, character varying, public.tipoutente, character varying); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.insert_utente(IN nome character varying, IN cognome character varying, IN tipo public.tipoutente, IN password character varying)
@@ -1415,10 +1646,8 @@ END;
 $_$;
 
 
-ALTER PROCEDURE universal.insert_utente(IN nome character varying, IN cognome character varying, IN tipo public.tipoutente, IN password character varying) OWNER TO giacomo;
-
 --
--- Name: login(character varying, text); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: login(character varying, text); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.login(login_email character varying, login_password text) RETURNS TABLE(id uuid, tipo public.tipoutente)
@@ -1447,10 +1676,8 @@ CREATE FUNCTION universal.login(login_email character varying, login_password te
   $$;
 
 
-ALTER FUNCTION universal.login(login_email character varying, login_password text) OWNER TO giacomo;
-
 --
--- Name: studenttoexstudent(uuid, public.tipomotivo); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: studenttoexstudent(uuid, public.tipomotivo); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.studenttoexstudent(IN _id uuid, IN _motivo public.tipomotivo)
@@ -1498,10 +1725,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.studenttoexstudent(IN _id uuid, IN _motivo public.tipomotivo) OWNER TO giacomo;
-
 --
--- Name: subscribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: subscribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.subscribe_to_cdl(IN id_studente uuid, IN codice_cdl integer)
@@ -1521,10 +1746,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.subscribe_to_cdl(IN id_studente uuid, IN codice_cdl integer) OWNER TO giacomo;
-
 --
--- Name: subscription(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: subscription(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.subscription(IN _id uuid, IN _appello integer)
@@ -1553,10 +1776,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.subscription(IN _id uuid, IN _appello integer) OWNER TO giacomo;
-
 --
--- Name: subsribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: subsribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.subsribe_to_cdl(IN _id_studente uuid, IN _codice integer)
@@ -1570,10 +1791,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.subsribe_to_cdl(IN _id_studente uuid, IN _codice integer) OWNER TO giacomo;
-
 --
--- Name: trigger_delete_appello(); Type: FUNCTION; Schema: universal; Owner: giacomo
+-- Name: trigger_delete_appello(); Type: FUNCTION; Schema: universal; Owner: -
 --
 
 CREATE FUNCTION universal.trigger_delete_appello() RETURNS trigger
@@ -1589,10 +1808,8 @@ END;
 $$;
 
 
-ALTER FUNCTION universal.trigger_delete_appello() OWNER TO giacomo;
-
 --
--- Name: unsubscribe_from_exam_appointment(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: unsubscribe_from_exam_appointment(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.unsubscribe_from_exam_appointment(IN id_studente uuid, IN codice_appello integer)
@@ -1610,10 +1827,8 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.unsubscribe_from_exam_appointment(IN id_studente uuid, IN codice_appello integer) OWNER TO giacomo;
-
 --
--- Name: unsubscribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: giacomo
+-- Name: unsubscribe_to_cdl(uuid, integer); Type: PROCEDURE; Schema: universal; Owner: -
 --
 
 CREATE PROCEDURE universal.unsubscribe_to_cdl(IN id_studente uuid, IN codice_cdl integer)
@@ -1632,14 +1847,48 @@ END;
 $$;
 
 
-ALTER PROCEDURE universal.unsubscribe_to_cdl(IN id_studente uuid, IN codice_cdl integer) OWNER TO giacomo;
+--
+-- Name: codice; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.codice
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: codice_corso_laurea; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.codice_corso_laurea
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: matricola_sequence; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.matricola_sequence
+    START WITH 100000
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: appelli; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: appelli; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.appelli (
@@ -1650,10 +1899,8 @@ CREATE TABLE universal.appelli (
 );
 
 
-ALTER TABLE universal.appelli OWNER TO giacomo;
-
 --
--- Name: appelli_codice_seq; Type: SEQUENCE; Schema: universal; Owner: giacomo
+-- Name: appelli_codice_seq; Type: SEQUENCE; Schema: universal; Owner: -
 --
 
 CREATE SEQUENCE universal.appelli_codice_seq
@@ -1665,17 +1912,15 @@ CREATE SEQUENCE universal.appelli_codice_seq
     CACHE 1;
 
 
-ALTER TABLE universal.appelli_codice_seq OWNER TO giacomo;
-
 --
--- Name: appelli_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: giacomo
+-- Name: appelli_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: -
 --
 
 ALTER SEQUENCE universal.appelli_codice_seq OWNED BY universal.appelli.codice;
 
 
 --
--- Name: corsi_di_laurea; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: corsi_di_laurea; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.corsi_di_laurea (
@@ -1688,10 +1933,8 @@ CREATE TABLE universal.corsi_di_laurea (
 );
 
 
-ALTER TABLE universal.corsi_di_laurea OWNER TO giacomo;
-
 --
--- Name: corsi_di_laurea_codice_seq; Type: SEQUENCE; Schema: universal; Owner: giacomo
+-- Name: corsi_di_laurea_codice_seq; Type: SEQUENCE; Schema: universal; Owner: -
 --
 
 CREATE SEQUENCE universal.corsi_di_laurea_codice_seq
@@ -1703,17 +1946,15 @@ CREATE SEQUENCE universal.corsi_di_laurea_codice_seq
     CACHE 1;
 
 
-ALTER TABLE universal.corsi_di_laurea_codice_seq OWNER TO giacomo;
-
 --
--- Name: corsi_di_laurea_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: giacomo
+-- Name: corsi_di_laurea_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: -
 --
 
 ALTER SEQUENCE universal.corsi_di_laurea_codice_seq OWNED BY universal.corsi_di_laurea.codice;
 
 
 --
--- Name: docenti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: docenti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.docenti (
@@ -1722,10 +1963,8 @@ CREATE TABLE universal.docenti (
 );
 
 
-ALTER TABLE universal.docenti OWNER TO giacomo;
-
 --
--- Name: ex_studenti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: ex_studenti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.ex_studenti (
@@ -1736,10 +1975,8 @@ CREATE TABLE universal.ex_studenti (
 );
 
 
-ALTER TABLE universal.ex_studenti OWNER TO giacomo;
-
 --
--- Name: insegnamenti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: insegnamenti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.insegnamenti (
@@ -1754,10 +1991,8 @@ CREATE TABLE universal.insegnamenti (
 );
 
 
-ALTER TABLE universal.insegnamenti OWNER TO giacomo;
-
 --
--- Name: insegnamenti_codice_seq; Type: SEQUENCE; Schema: universal; Owner: giacomo
+-- Name: insegnamenti_codice_seq; Type: SEQUENCE; Schema: universal; Owner: -
 --
 
 CREATE SEQUENCE universal.insegnamenti_codice_seq
@@ -1769,17 +2004,15 @@ CREATE SEQUENCE universal.insegnamenti_codice_seq
     CACHE 1;
 
 
-ALTER TABLE universal.insegnamenti_codice_seq OWNER TO giacomo;
-
 --
--- Name: insegnamenti_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: giacomo
+-- Name: insegnamenti_codice_seq; Type: SEQUENCE OWNED BY; Schema: universal; Owner: -
 --
 
 ALTER SEQUENCE universal.insegnamenti_codice_seq OWNED BY universal.insegnamenti.codice;
 
 
 --
--- Name: iscritti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: iscritti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.iscritti (
@@ -1791,10 +2024,8 @@ CREATE TABLE universal.iscritti (
 );
 
 
-ALTER TABLE universal.iscritti OWNER TO giacomo;
-
 --
--- Name: propedeutico; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: propedeutico; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.propedeutico (
@@ -1803,10 +2034,8 @@ CREATE TABLE universal.propedeutico (
 );
 
 
-ALTER TABLE universal.propedeutico OWNER TO giacomo;
-
 --
--- Name: segretari; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: segretari; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.segretari (
@@ -1815,10 +2044,8 @@ CREATE TABLE universal.segretari (
 );
 
 
-ALTER TABLE universal.segretari OWNER TO giacomo;
-
 --
--- Name: studenti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: studenti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.studenti (
@@ -1828,10 +2055,8 @@ CREATE TABLE universal.studenti (
 );
 
 
-ALTER TABLE universal.studenti OWNER TO giacomo;
-
 --
--- Name: utenti; Type: TABLE; Schema: universal; Owner: giacomo
+-- Name: utenti; Type: TABLE; Schema: universal; Owner: -
 --
 
 CREATE TABLE universal.utenti (
@@ -1848,247 +2073,29 @@ CREATE TABLE universal.utenti (
 );
 
 
-ALTER TABLE universal.utenti OWNER TO giacomo;
-
 --
--- Name: appelli codice; Type: DEFAULT; Schema: universal; Owner: giacomo
+-- Name: appelli codice; Type: DEFAULT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.appelli ALTER COLUMN codice SET DEFAULT nextval('universal.appelli_codice_seq'::regclass);
 
 
 --
--- Name: corsi_di_laurea codice; Type: DEFAULT; Schema: universal; Owner: giacomo
+-- Name: corsi_di_laurea codice; Type: DEFAULT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.corsi_di_laurea ALTER COLUMN codice SET DEFAULT nextval('universal.corsi_di_laurea_codice_seq'::regclass);
 
 
 --
--- Name: insegnamenti codice; Type: DEFAULT; Schema: universal; Owner: giacomo
+-- Name: insegnamenti codice; Type: DEFAULT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.insegnamenti ALTER COLUMN codice SET DEFAULT nextval('universal.insegnamenti_codice_seq'::regclass);
 
 
 --
--- Data for Name: appelli; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.appelli (codice, data, luogo, insegnamento) FROM stdin;
-1	2024-04-23	celoria	1
-2	2024-05-02	celoria	6
-3	2024-04-16	venezian	1
-4	2024-09-26	settore didattico	1
-5	2024-10-23	celoria	2
-6	2024-09-30	venezian	2
-7	2024-10-25	settore didattico	2
-8	2024-07-31	celoria	3
-9	2024-08-08	venezian	3
-10	2024-12-18	settore didattico	3
-11	2024-06-07	celoria	5
-12	2024-08-02	venezian	5
-13	2024-04-02	settore didattico	5
-14	2024-08-23	venezian	6
-15	2024-07-12	settore didattico	6
-16	2024-10-10	celoria	7
-17	2024-10-23	venezian	7
-18	2024-09-13	golgi	7
-19	2024-08-14	celoria	8
-20	2024-08-01	venezian	8
-21	2024-09-23	settore didattico	8
-22	2024-07-18	celoria	14
-23	2024-09-04	venezian	14
-24	2024-09-27	settore didattico	14
-25	2024-09-13	celoria	9
-26	2024-08-27	venezian	9
-27	2024-09-02	settore didattico	9
-28	2024-07-03	celoria	10
-29	2024-06-06	venezian	10
-30	2024-08-02	settore didattico	10
-31	2024-10-16	celoriaa	12
-32	2024-07-19	venezian	12
-33	2024-09-30	settore didattico	12
-34	2024-05-15	settore didattico	6
-35	2024-05-29	celoria	1
-36	2024-06-27	celoria	8
-37	2024-07-12	celoria	7
-38	2024-05-31	celoria	7
-39	2024-05-06	golgi	7
-40	2024-05-30	golgi	1
-\.
-
-
---
--- Data for Name: corsi_di_laurea; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.corsi_di_laurea (codice, nome, tipo, descrizione) FROM stdin;
-1	Informatica	3	CdL in informatica
-2	Medicina	5	CdL in medicina
-3	architettura	2	CdL in architettura
-\.
-
-
---
--- Data for Name: docenti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.docenti (id, ufficio) FROM stdin;
-b9800305-79aa-42cc-a9e9-d3264a2e35b7	edificio 74
-fdb13852-7728-4929-ae3b-5803692905cb	edificio 74
-0e9df6b4-af65-488e-9820-9653311438e1	edificio 74
-17fb4ccc-500f-4f2e-8872-1703c3ccf818	edificio 74
-\.
-
-
---
--- Data for Name: ex_studenti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.ex_studenti (id, matricola, motivo, corso_di_laurea) FROM stdin;
-7a4cf567-cbe0-413b-8550-bd918c5af383	100038	rinuncia	1
-1f4d2a4e-d5dc-4da2-91e4-170ab0fb50de	100027	rinuncia	3
-\.
-
-
---
--- Data for Name: insegnamenti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.insegnamenti (codice, nome, descrizione, anno, docente_responsabile, corso_di_laurea) FROM stdin;
-1	progettazione	corso di progettazione	2024	b9800305-79aa-42cc-a9e9-d3264a2e35b7	3
-2	fisica	corso di fisica	2024	b9800305-79aa-42cc-a9e9-d3264a2e35b7	3
-3	analisi	corso di analisi	2024	b9800305-79aa-42cc-a9e9-d3264a2e35b7	3
-6	programmazione	corso di programmazione	2024	fdb13852-7728-4929-ae3b-5803692905cb	1
-7	algoritmi	corso di algoritmi	2024	fdb13852-7728-4929-ae3b-5803692905cb	1
-8	basi di dati	corso di basi di dati	2024	fdb13852-7728-4929-ae3b-5803692905cb	1
-9	anatomia	corso di anatomia	2024	17fb4ccc-500f-4f2e-8872-1703c3ccf818	2
-10	biologia	corso di biologia	2024	17fb4ccc-500f-4f2e-8872-1703c3ccf818	2
-12	chirurgia	corso di chirurgia	2024	17fb4ccc-500f-4f2e-8872-1703c3ccf818	2
-14	sistemi operativi	corso di sistemi operativi	2024	0e9df6b4-af65-488e-9820-9653311438e1	1
-5	strutture	corso di strutture	2024	17fb4ccc-500f-4f2e-8872-1703c3ccf818	3
-15	teoria dei grafi	corso di teoria dei grafi	2024	0e9df6b4-af65-488e-9820-9653311438e1	3
-\.
-
-
---
--- Data for Name: iscritti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.iscritti (appello, studente, insegnamento, voto) FROM stdin;
-2	4df9bf9d-41e1-4155-894b-f8808f8167eb	6	26
-2	4df9bf9d-41e1-4155-894b-f8808f8167eb	6	30
-6	b60c089e-8075-4a60-9859-ec33b135b8b9	2	0
-2	4df9bf9d-41e1-4155-894b-f8808f8167eb	6	0
-34	4df9bf9d-41e1-4155-894b-f8808f8167eb	6	0
-3	5ee6969b-4ed4-4a97-b962-7d8c06082194	1	22
-3	c4e34657-637d-4ad1-9651-4fa84d35d6d3	1	0
-3	5ee6969b-4ed4-4a97-b962-7d8c06082194	1	0
-3	7ffe9ae9-f3d9-49b2-ad61-85bf83b40986	1	0
-\.
-
-
---
--- Data for Name: propedeutico; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.propedeutico (insegnamento, "propedeuticità") FROM stdin;
-2	15
-15	1
-15	5
-\.
-
-
---
--- Data for Name: segretari; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.segretari (id, sede) FROM stdin;
-3dec0064-701b-463a-9685-6578b4622c32	sede centrale
-7879b44c-b66f-499b-be4a-13f0287147ee	sede centrale
-0e7b3d3a-00f2-4612-bf74-737ee1113b3a	sede centrale
-\.
-
-
---
--- Data for Name: studenti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.studenti (id, matricola, corso_di_laurea) FROM stdin;
-4df9bf9d-41e1-4155-894b-f8808f8167eb	100025	1
-d321fd61-9eb7-4b3e-b417-8ed291a52d26	100026	2
-32f28203-8362-4bb3-976d-ef8940136157	100028	1
-f117ca3d-82b7-4512-accc-7c04d1191250	100033	2
-cdd9ef84-c4d1-4540-b792-662d0ccb97fc	100034	1
-c4e34657-637d-4ad1-9651-4fa84d35d6d3	100029	3
-7b4bd4c8-268e-42c3-864b-862f1283604c	100037	2
-e546a150-2581-4265-8ce3-557c79bdd498	100036	3
-5ee6969b-4ed4-4a97-b962-7d8c06082194	100032	3
-72b30203-f0f7-4a10-87f9-ca9c0779d69c	100031	2
-7a083611-db98-40c7-9be2-d805ec343906	100030	3
-7ffe9ae9-f3d9-49b2-ad61-85bf83b40986	100035	3
-c485f691-04b5-42a6-9c3e-e99865516df4	100040	2
-c4a3cc4b-b101-474c-96a2-151f486db9b5	100041	1
-b60c089e-8075-4a60-9859-ec33b135b8b9	100039	3
-\.
-
-
---
--- Data for Name: utenti; Type: TABLE DATA; Schema: universal; Owner: giacomo
---
-
-COPY universal.utenti (id, nome, cognome, tipo, email, password) FROM stdin;
-7879b44c-b66f-499b-be4a-13f0287147ee	fabrizio	conte	segretario	fabrizio.conte@segretari.universal.it	$2a$06$OTSIMMhU9p75nY5US1y/ru.qyaD.QOiA87U6Bboimdoacxy9Cwpeu
-b9800305-79aa-42cc-a9e9-d3264a2e35b7	michele	bolis	docente	michele.bolis@docenti.universal.it	$2a$06$DEjUcBW1VSLi3Juyh7.EruLstGVFMaq7T69GkL2VkBULA6DeZ7Sz.
-d321fd61-9eb7-4b3e-b417-8ed291a52d26	luca	corradini	studente	luca.corradini@studenti.universal.it	$2a$06$Cs1LKfqRzOrCwLTMoys4AegwtrSI7huJ1GphjoV/YUkRTMMHKj7m.
-32f28203-8362-4bb3-976d-ef8940136157	mattia	delledonne	studente	mattia.delledonne@studenti.universal.it	$2a$06$jfRafveCjH136OE7w7s/deKLezqqwcl9yJd9idTuy2rpFX4U7Zac6
-0e9df6b4-af65-488e-9820-9653311438e1	alice	guizzardi	docente	alice.guizzardi@docenti.universal.it	$2a$06$XuZwqLJn7A9eU9H2i26Z5eLofj9P8w5fLc9.x0QTF9QmaYUURVmqG
-17fb4ccc-500f-4f2e-8872-1703c3ccf818	sara	quartieri	docente	sara.quartieri@docenti.universal.it	$2a$06$61c2v0dhP41TLTB0.Bi1oOT2z7nV6lFQRvzj8myQYk2v1PEFzbkPO
-0e7b3d3a-00f2-4612-bf74-737ee1113b3a	carlo	azzuri	segretario	carlo.azzuri@segretari.universal.it	$2a$06$1C9jOO07VW8H0FbWx/TRpOL9w5fjK61pjxfI7/cpgZPV7eMevS55q
-c4e34657-637d-4ad1-9651-4fa84d35d6d3	axel 	toscano	studente	axel .toscano@studenti.universal.it	$2a$06$BLfpVnO81IjGB0xqxIvn5OEYx8gMb3eeDmrOb6pkKDw44BZZv5bBy
-7a083611-db98-40c7-9be2-d805ec343906	riccardo	totaro	studente	riccardo.totaro@studenti.universal.it	$2a$06$COqj5CW4qBXQxzY7S/3D5.WbEqo.5BTI4xn6Q1I6f9iQgaTaYysdO
-72b30203-f0f7-4a10-87f9-ca9c0779d69c	marica	muolo	studente	marica.muolo@studenti.universal.it	$2a$06$ayvGRZ3PFDaWgLYc6r8KpeXgqSfWMOp1a8K4nCpgha4vNuvQ9C8.u
-5ee6969b-4ed4-4a97-b962-7d8c06082194	ludovica	porro	studente	ludovica.porro@studenti.universal.it	$2a$06$KkRcq.Huk14xCyMqX9RWnuRfb34fd4y32eb6ibfAGC4tJ9ZeIqZ0K
-f117ca3d-82b7-4512-accc-7c04d1191250	alessandro	dino	studente	alessandro.dino@studenti.universal.it	$2a$06$VXP7mfE/VJ1g49DI672NbezksMwlih8v8FDO8lTI12KWPW60T1K8G
-cdd9ef84-c4d1-4540-b792-662d0ccb97fc	alice	annoni	studente	alice.annoni@studenti.universal.it	$2a$06$YYkZyOKBTyECY9hcSrWwAOEv5tJ8a4qX/KBhXrz1dS6w1Yzd6IAm2
-7ffe9ae9-f3d9-49b2-ad61-85bf83b40986	simone	monesi	studente	simone.monesi@studenti.universal.it	$2a$06$z3//Vb00v9iF18hyCg0.M.wqrHljkcoOdrpRBKrrcmtcjmBXoa6Wa
-e546a150-2581-4265-8ce3-557c79bdd498	davide	dellefave	studente	davide.dellefave@studenti.universal.it	$2a$06$xZ9E0Tw5XyRD4Da12ED.w.fsyVuem/hu4qCQ6wP74J9UB.hjZ04Ki
-7b4bd4c8-268e-42c3-864b-862f1283604c	christian	morelli	studente	christian.morelli@studenti.universal.it	$2a$06$l7oUj/Gn2We2igeVn4xqUOzbRRSEIh5yBP6K7YP5ObBg1yVxv7316
-b60c089e-8075-4a60-9859-ec33b135b8b9	denise	caria	studente	denise.caria@studenti.universal.it	$2a$06$11a9nxPL8r1zv4rikSLViOUmwnrUUtO3mnqXdBW3QCLGjYDxlik0m
-c485f691-04b5-42a6-9c3e-e99865516df4	silvia	colombo	studente	silvia.colombo@studenti.universal.it	$2a$06$iY7W.cFJgYpWMP.SjlkJxueUbkB4dBgFAPqQNzNYxZsdmlNfTPEE6
-c4a3cc4b-b101-474c-96a2-151f486db9b5	sofia	comitani	studente	sofia.comitani@studenti.universal.it	$2a$06$g.3njzaJZCNZHvShfXf82O.CJoVrwzGyOeICytwqDKv7Fa/52xtmy
-7a4cf567-cbe0-413b-8550-bd918c5af383	raoul	torri	ex_studente	raoul.torri@exstudenti.universal.it	$2a$06$RXRc8xvwItzbOzF3uWbOV.jmpDegx/lNZlhNJsh56mbiGBrIbwBLq
-1f4d2a4e-d5dc-4da2-91e4-170ab0fb50de	andrea	galliano	ex_studente	andrea.galliano@exstudenti.universal.it	$2a$06$SgZIBNYF9MuV6aqlct6mhuiGYO7Eb.xCuCoNj8Upu7oR16Cfenbxm
-4df9bf9d-41e1-4155-894b-f8808f8167eb	luca	favini	studente	luca.favini@studenti.universal.it	$2a$06$/Abawta3.w80b1xEszLrEum4f0Rs/Tchg2ITVCns.29zStUmlDbA2
-fdb13852-7728-4929-ae3b-5803692905cb	daniele	deluca	docente	daniele.deluca@docenti.universal.it	$2a$06$MGn3YYlNiTuclqgwK1RPOO52OecSEwcZRu1S6BIj1OinAmWY0l0l.
-3dec0064-701b-463a-9685-6578b4622c32	giacomo	comitani	segretario	giacomo.comitani@segretari.universal.it	$2a$06$wbkDHg2wTt8aILroCVbyVeDQsUkOHvcvltedFtyZA1I8agU27whxO
-\.
-
-
---
--- Name: appelli_codice_seq; Type: SEQUENCE SET; Schema: universal; Owner: giacomo
---
-
-SELECT pg_catalog.setval('universal.appelli_codice_seq', 40, true);
-
-
---
--- Name: corsi_di_laurea_codice_seq; Type: SEQUENCE SET; Schema: universal; Owner: giacomo
---
-
-SELECT pg_catalog.setval('universal.corsi_di_laurea_codice_seq', 16, true);
-
-
---
--- Name: insegnamenti_codice_seq; Type: SEQUENCE SET; Schema: universal; Owner: giacomo
---
-
-SELECT pg_catalog.setval('universal.insegnamenti_codice_seq', 15, true);
-
-
---
--- Name: appelli appelli_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: appelli appelli_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.appelli
@@ -2096,7 +2103,7 @@ ALTER TABLE ONLY universal.appelli
 
 
 --
--- Name: corsi_di_laurea corsi_di_laurea_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: corsi_di_laurea corsi_di_laurea_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.corsi_di_laurea
@@ -2104,7 +2111,7 @@ ALTER TABLE ONLY universal.corsi_di_laurea
 
 
 --
--- Name: docenti docenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: docenti docenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.docenti
@@ -2112,7 +2119,7 @@ ALTER TABLE ONLY universal.docenti
 
 
 --
--- Name: ex_studenti ex_studenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: ex_studenti ex_studenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.ex_studenti
@@ -2120,7 +2127,7 @@ ALTER TABLE ONLY universal.ex_studenti
 
 
 --
--- Name: insegnamenti insegnamenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: insegnamenti insegnamenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.insegnamenti
@@ -2128,7 +2135,7 @@ ALTER TABLE ONLY universal.insegnamenti
 
 
 --
--- Name: iscritti iscritti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: iscritti iscritti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.iscritti
@@ -2136,7 +2143,7 @@ ALTER TABLE ONLY universal.iscritti
 
 
 --
--- Name: propedeutico propedeutico_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: propedeutico propedeutico_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.propedeutico
@@ -2144,7 +2151,7 @@ ALTER TABLE ONLY universal.propedeutico
 
 
 --
--- Name: segretari segretari_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: segretari segretari_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.segretari
@@ -2152,7 +2159,7 @@ ALTER TABLE ONLY universal.segretari
 
 
 --
--- Name: studenti studenti_matricola_key; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: studenti studenti_matricola_key; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.studenti
@@ -2160,7 +2167,7 @@ ALTER TABLE ONLY universal.studenti
 
 
 --
--- Name: studenti studenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: studenti studenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.studenti
@@ -2168,7 +2175,7 @@ ALTER TABLE ONLY universal.studenti
 
 
 --
--- Name: utenti utenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: utenti utenti_pkey; Type: CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.utenti
@@ -2176,56 +2183,56 @@ ALTER TABLE ONLY universal.utenti
 
 
 --
--- Name: utenti aggiorna_tabella_trigger; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: utenti aggiorna_tabella_trigger; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER aggiorna_tabella_trigger AFTER INSERT ON universal.utenti FOR EACH ROW EXECUTE FUNCTION public.aggiorna_tabella();
 
 
 --
--- Name: propedeutico check_non_cyclic_prerequisites; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: propedeutico check_non_cyclic_prerequisites; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER check_non_cyclic_prerequisites BEFORE INSERT ON universal.propedeutico FOR EACH ROW EXECUTE FUNCTION public.non_cyclic_prerequisites_check();
 
 
 --
--- Name: studenti check_subscription_to_cdl_trigger; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: studenti check_subscription_to_cdl_trigger; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER check_subscription_to_cdl_trigger BEFORE INSERT OR UPDATE OF corso_di_laurea ON universal.studenti FOR EACH ROW EXECUTE FUNCTION public.check_subscription_to_cdl();
 
 
 --
--- Name: docenti elimina_utente_dopo_cancellazione_trigger; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: docenti elimina_utente_dopo_cancellazione_trigger; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger AFTER DELETE ON universal.docenti FOR EACH ROW EXECUTE FUNCTION public.elimina_utente_dopo_cancellazione();
 
 
 --
--- Name: segretari elimina_utente_dopo_cancellazione_trigger; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: segretari elimina_utente_dopo_cancellazione_trigger; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER elimina_utente_dopo_cancellazione_trigger AFTER DELETE ON universal.segretari FOR EACH ROW EXECUTE FUNCTION public.elimina_utente_dopo_cancellazione();
 
 
 --
--- Name: insegnamenti enforce_instructor_course_limit; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: insegnamenti enforce_instructor_course_limit; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER enforce_instructor_course_limit BEFORE INSERT ON universal.insegnamenti FOR EACH ROW EXECUTE FUNCTION public.check_instructor_course_limit();
 
 
 --
--- Name: appelli enforce_unique_sessions_per_day; Type: TRIGGER; Schema: universal; Owner: giacomo
+-- Name: appelli enforce_unique_sessions_per_day; Type: TRIGGER; Schema: universal; Owner: -
 --
 
 CREATE TRIGGER enforce_unique_sessions_per_day BEFORE INSERT ON universal.appelli FOR EACH ROW EXECUTE FUNCTION public.check_number_of_session();
 
 
 --
--- Name: docenti docenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: docenti docenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.docenti
@@ -2233,7 +2240,7 @@ ALTER TABLE ONLY universal.docenti
 
 
 --
--- Name: ex_studenti ex_studenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: ex_studenti ex_studenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.ex_studenti
@@ -2241,7 +2248,7 @@ ALTER TABLE ONLY universal.ex_studenti
 
 
 --
--- Name: ex_studenti ex_studenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: ex_studenti ex_studenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.ex_studenti
@@ -2249,7 +2256,7 @@ ALTER TABLE ONLY universal.ex_studenti
 
 
 --
--- Name: insegnamenti insegnamenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: insegnamenti insegnamenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.insegnamenti
@@ -2257,7 +2264,7 @@ ALTER TABLE ONLY universal.insegnamenti
 
 
 --
--- Name: insegnamenti insegnamenti_docente_responsabile_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: insegnamenti insegnamenti_docente_responsabile_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.insegnamenti
@@ -2265,7 +2272,7 @@ ALTER TABLE ONLY universal.insegnamenti
 
 
 --
--- Name: iscritti iscritti_appello_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: iscritti iscritti_appello_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.iscritti
@@ -2273,7 +2280,7 @@ ALTER TABLE ONLY universal.iscritti
 
 
 --
--- Name: iscritti iscritti_studente_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: iscritti iscritti_studente_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.iscritti
@@ -2281,7 +2288,7 @@ ALTER TABLE ONLY universal.iscritti
 
 
 --
--- Name: propedeutico propedeutico_insegnamento_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: propedeutico propedeutico_insegnamento_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.propedeutico
@@ -2289,7 +2296,7 @@ ALTER TABLE ONLY universal.propedeutico
 
 
 --
--- Name: propedeutico propedeutico_propedeuticità_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: propedeutico propedeutico_propedeuticità_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.propedeutico
@@ -2297,7 +2304,7 @@ ALTER TABLE ONLY universal.propedeutico
 
 
 --
--- Name: segretari segretari_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: segretari segretari_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.segretari
@@ -2305,7 +2312,7 @@ ALTER TABLE ONLY universal.segretari
 
 
 --
--- Name: studenti studenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: studenti studenti_corso_di_laurea_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.studenti
@@ -2313,7 +2320,7 @@ ALTER TABLE ONLY universal.studenti
 
 
 --
--- Name: studenti studenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: giacomo
+-- Name: studenti studenti_id_fkey; Type: FK CONSTRAINT; Schema: universal; Owner: -
 --
 
 ALTER TABLE ONLY universal.studenti
@@ -2321,6 +2328,14 @@ ALTER TABLE ONLY universal.studenti
 
 
 --
+-- Name: DATABASE universal; Type: ACL; Schema: -; Owner: -
+--
+
+GRANT ALL ON DATABASE universal TO giacomo;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
+INSERT INTO universal.utenti VALUES ('3dec0064-701b-463a-9685-6578b4622c32', 'giacomo', 'comitani', 'segretario', 'giacomo.comitani@segretari.universal.it', '$2a$06$wbkDHg2wTt8aILroCVbyVeDQsUkOHvcvltedFtyZA1I8agU27whxO');
