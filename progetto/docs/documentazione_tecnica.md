@@ -29,9 +29,8 @@ Giacomo Comitani, Matricola 986596
 
 ## Schema ER
 
-<p align="center">
-  <img src="images/ER.png" alt="alt text">
-</p>
+![Descrizione immagine](images/ER.png)
+
 
 - **utenti**: (id, nome, cognome, tipo, email, password)
 - **docenti**: (id, ufficio)
@@ -46,9 +45,7 @@ Giacomo Comitani, Matricola 986596
 
 ## Schema logico
 
-<p align="center">
-  <img src="images/SchemaLogico.png" alt="alt text">
-</p>
+![Descrizione immagine](images/SchemaLogico.png)
 
 # Implementazioni Significative
 
