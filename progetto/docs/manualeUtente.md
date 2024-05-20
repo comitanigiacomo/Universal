@@ -6,7 +6,7 @@ Per lanciare `Universal` è necessario avere sul proprio dispositivo:
 - PHP
 - Un web server
 
-Per creare e popolare il database è necessario utilizzare lo script `dump.sql` presente nella cartella `database` presente all'interno del repo. In alternativa si può utilizzare lo script `cleanDump.sql` in caso si vogliano inserire a paritire da zero, gli utenti, corsi di laurea e in generale le altre informazioni del database (escludendo un utente di default di segreteria, sempre presente in ogni caso).
+Per creare e popolare il database sono disponibili i due file `dump-data-only.sql` e `dump-schema-only.sql` nella cartella `database`.
 
 In ogni caso sarà sempre presente un utente segretario avente le seguenti credenziali: 
 
