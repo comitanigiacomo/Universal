@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html>
 <head>
     <title>Iscrizioni</title>
-    <link rel="stylesheet" type="text/css" href="./changePassword.css">
+    <link rel="stylesheet" type="text/css" href="../segreteria/changePassword.css">
 </head>
 <body>
     <div class="sfondo">
