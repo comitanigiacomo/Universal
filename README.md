@@ -2,7 +2,7 @@
 
 Progetto per il corso di `basi di dati`, anno scolastico 2023/2024
 
-Made by Giacomo Comitani, matricola 986596
+Il progetto consiste nello sviluppare un’applicazione di basi di dati per la gestione degli esami universitari sia dal punto di vista degli studenti che dei docenti.
 
 ## Documentazione
 
