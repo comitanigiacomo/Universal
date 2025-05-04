@@ -96,7 +96,7 @@ docker exec -it <nome_container> sh
 psql -U giacomo -d universal -f /dump-data-only
 ```
 
-Durante l'importazione è bene assixurarsi che:
+Durante l'importazione è bene assicurarsi che:
 
 - Il container PostgreSQL sia in esecuzione
 
@@ -129,3 +129,25 @@ E connettersi al database usando il comando:
 ```bash
 psql -h localhost -U giacomo -d universal
 ```
+### Avvio della Web App con VS Code (opzionale)
+
+Se desideri avviare rapidamente la Web App per testarne il funzionamento, è possibile farlo direttamente da **Visual Studio Code**, grazie all’estensione [PHP Server](https://github.com/brapifra/vscode-phpserver). Ecco i passaggi:
+
+1. Apri Visual Studio Code e posizionati nella cartella `progetto/webapp`.
+
+2. Installa l'estensione **PHP Server** (se non l'hai già installata)
+
+    - Vai nella barra laterale di VS Code → Estensioni (icona quadrata)
+
+    - Cerca PHP Server di [brapifra](https://github.com/brapifra) e installala
+
+3. Avvia il server locale:
+
+    - Apri il file `login.php`
+
+    - In alto a destra apparirà un icona blu -> cliccala
+
+    - Si aprirà automaticamente il browser con la Web App attiva
+
+>[!warning]
+> Assicurati che PHP sia installato sul tuo sistema (in PATH), altrimenti l’estensione non funzionerà correttamente. Inoltre, il container Docker del database deve essere attivo perché la Web App possa funzionare.
