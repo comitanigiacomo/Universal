@@ -1,10 +1,15 @@
 <?php
 // db_connection.php
 
-$conn = pg_connect("host=127.0.0.1 port=5432 dbname=universal user=giacomo password=giacomo");
+$db_url = getenv('DATABASE_URL'); 
 
-if (!$conn) {
-    die("Connessione al database fallita");
+if ($db_url) {
+    $conn = pg_connect($db_url);
+
+    if (!$conn) {
+        die("Connessione al database fallita");
+    }
+} else {
+    die("DATABASE_URL non definita come variabile d'ambiente.");
 }
-
 ?>
