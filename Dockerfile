@@ -1,4 +1,4 @@
-FROM php:8.1-apache-bullseye-slim
+FROM php:8.4-apache
 
 RUN docker-php-ext-install pgsql pdo pdo_pgsql
 
