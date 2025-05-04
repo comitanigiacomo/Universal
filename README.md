@@ -74,13 +74,33 @@ Il database sarà configurato automaticamente e pronto per essere utilizzato.
 
 ### **Popolamento del Database**
 
-Una volta avviato il container con Docker, è possibile popolare il database utilizzando i file SQL presenti nella cartella `progetto/database`:
+Una volta avviato il container con Docker (`docker-compose up -d`), è necessario **popolare manualmente il database** eseguendo i due script SQL in questo ordine:
 
-- `dump-schema-only.sql`: Crea la struttura del database (tabelle, funzioni, ecc.).
+1. **importa la struttura del database** (tabelle, funzioni, procedure, trigger):
 
-- `dump-data-only.sql`: Popola il database con i dati di esempio.
+```bash
+docker cp database/dump-schema-only.sql <nome_container>:/dump-schema-only.sql
 
-È possibile eseguire questi script utilizzando un client PostgreSQL come `psql` o un'interfaccia grafica come **pgAdmin**.
+docker exec -it <nome_container> sh
+
+psql -U giacomo -d universal -f /dump-schema-only
+```
+
+2. **Importa i dati (utenti, esami ecc...):
+
+```bash
+docker cp database/dump-data-only.sql <nome_container>:/dump-data-only.sql
+
+docker exec -it <nome_container> sh
+
+psql -U giacomo -d universal -f /dump-data-only
+```
+
+Durante l'importazione è bene assixurarsi che:
+
+- Il container PostgreSQL sia in esecuzione
+
+- I file`.sql` siano correttamente posizionati nella cartella `progetto/database`
 
 ### **Credenziali di esempio**
 
