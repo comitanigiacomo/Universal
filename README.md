@@ -86,7 +86,7 @@ docker exec -it <nome_container> sh
 psql -U giacomo -d universal -f /dump-schema-only
 ```
 
-2. **Importa i dati (utenti, esami ecc...):
+2. **Importa i dati** (utenti, esami ecc...):
 
 ```bash
 docker cp database/dump-data-only.sql <nome_container>:/dump-data-only.sql
