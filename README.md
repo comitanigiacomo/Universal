@@ -45,7 +45,7 @@ Per avviare il progetto in modo rapido e sicuro, è possibile utilizzare **Docke
 1. **Clona questo repository**:
 
    ```bash
-   git clone https://github.com/tuo-username/universal.git
+   git clone https://github.com/comitanigiacomo/Universal.git
    cd universal
    ```
 
